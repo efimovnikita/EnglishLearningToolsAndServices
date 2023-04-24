@@ -94,6 +94,14 @@
     }
 </button>
 
+<p>History</p>
+<ul>
+    @foreach (Token token in History)
+    {
+        <li>@token.Text - @token.Definition</li>
+    }
+</ul>
+
 @code {
     private string? RawTextAreaContent { get; set; }
     private List<Sentence> Sentences { get; set; } = new();
@@ -123,6 +131,20 @@
             }
 
             return false;
+        }
+    }
+
+    private List<Token> History
+    {
+        get
+        {
+            var result = new List<Token>();
+            foreach (Sentence sentence in Sentences)
+            {
+                result.AddRange(sentence.Tokens.Where(token => !String.IsNullOrWhiteSpace(token.Definition)));
+            }
+
+            return result;
         }
     }
 
@@ -207,10 +229,16 @@
     {
         try
         {
-            OpenAIAPI api = new(OpenAiKey); // uses default, env, or config file
+            OpenAIAPI api = new(OpenAiKey);
             Conversation? chat = api.Chat.CreateConversation();
             if (CurrentMode == Mode.Word && SelectedWord != null)
             {
+                if (String.IsNullOrWhiteSpace(SelectedWord.Definition) == false)
+                {
+                    await JsRuntime.InvokeVoidAsync("alert", $"{SelectedWord.Definition}");
+                    return;    
+                }
+                
                 Sentence? sentence = Sentences.FirstOrDefault(s => s.Id.Equals(SelectedWord.SentenceId));
                 if (sentence == null)
                 {
@@ -249,6 +277,8 @@
             
                 chat.AppendUserInput(content);
                 string response = await chat.GetResponseFromChatbotAsync();
+
+                SelectedWord.Definition = response;
             
                 await JsRuntime.InvokeVoidAsync("alert", $"{response}");
             }
