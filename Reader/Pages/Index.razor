@@ -167,7 +167,7 @@
     
     private bool IsWord(Token token)
     {
-        return Regex.IsMatch(token.Text, @"^[A-Za-z-]+$");
+        return Regex.IsMatch(token.Text, @"^[A-Za-z-'’]+$");
     }
 
     private void ProcessText()
