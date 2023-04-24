@@ -131,7 +131,7 @@
     {
         SelectedWord = null;
         SelectedSentences.Clear();
-        CurrentMode = (Mode)Enum.Parse(typeof(Mode), e.Value.ToString());
+        CurrentMode = (Mode)Enum.Parse(typeof(Mode), e.Value!.ToString()!);
     }
     
     private bool IsWord(Token token)
