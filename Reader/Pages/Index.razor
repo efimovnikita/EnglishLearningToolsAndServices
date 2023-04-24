@@ -35,8 +35,15 @@
                     {
                         @token.Text
                     }
-                    
-                    <text>&nbsp;</text>
+
+                    var i = sentence.Tokens.IndexOf(token);
+                    if (i + 1 < sentence.Tokens.Count)
+                    {
+                        if (IsWord(sentence.Tokens[i + 1]))
+                        {
+                            <text>&nbsp;</text>
+                        }
+                    }
                 }
                 </p>
             }
