@@ -36,7 +36,7 @@
                         @token.Text
                     }
 
-                    var i = sentence.Tokens.IndexOf(token);
+                    int i = sentence.Tokens.IndexOf(token);
                     if (i + 1 < sentence.Tokens.Count)
                     {
                         if (IsWord(sentence.Tokens[i + 1]))
@@ -158,11 +158,11 @@
         Tokenizer tokenizer = new TokenizerME(tokenizerModel);
         
         string[] sentences = sentenceDetector.sentDetect(RawTextAreaContent);
-        foreach (var sentence in sentences)
+        foreach (string sentence in sentences)
         {
             string[]? tokens = tokenizer.tokenize(sentence);
             Sentence sentenceObj = new() { Id = Guid.NewGuid(), Tokens = new List<Token>() };
-            foreach (var token in tokens)
+            foreach (string token in tokens)
             {
                 sentenceObj.Tokens.Add(new Token { Id = Guid.NewGuid(), SentenceId = sentenceObj.Id, Text = token });
             }
@@ -205,70 +205,75 @@
 
     private async Task GetDefinitionOrParaphrase()
     {
-        OpenAIAPI api = new(OpenAiKey); // uses default, env, or config file
-        Conversation? chat = api.Chat.CreateConversation();
-        if (CurrentMode == Mode.Word && SelectedWord != null)
+        try
         {
-            Sentence? sentence = Sentences.FirstOrDefault(s => s.Id.Equals(SelectedWord.SentenceId));
-            if (sentence == null)
+            OpenAIAPI api = new(OpenAiKey); // uses default, env, or config file
+            Conversation? chat = api.Chat.CreateConversation();
+            if (CurrentMode == Mode.Word && SelectedWord != null)
             {
-                return;
-            }
-            var i = Sentences.IndexOf(sentence);
-            var sentencesCount = Sentences.Count;
-            Sentence? prevSentence = null;
-            if (i - 1 > 0)
-            {
-                prevSentence = Sentences[i - 1];
-            }
+                Sentence? sentence = Sentences.FirstOrDefault(s => s.Id.Equals(SelectedWord.SentenceId));
+                if (sentence == null)
+                {
+                    return;
+                }
+                int i = Sentences.IndexOf(sentence);
+                int sentencesCount = Sentences.Count;
+                Sentence? prevSentence = null;
+                if (i - 1 > 0)
+                {
+                    prevSentence = Sentences[i - 1];
+                }
 
-            Sentence? nextSentence = null;
-            if (i + 1 < sentencesCount)
-            {
-                nextSentence = Sentences[i + 1];
-            }
+                Sentence? nextSentence = null;
+                if (i + 1 < sentencesCount)
+                {
+                    nextSentence = Sentences[i + 1];
+                }
 
-            string stringRepresentationOfSentence = String.Join(' ', sentence.Tokens.Select(t => t.Text).ToArray());
-            string content = $"Give me a simple definition for word \'{SelectedWord.Text}\' in the context of the sentence \'{stringRepresentationOfSentence}\'.";
-
-            if (prevSentence != null)
-            {
-                string stringRepresentationOfPrevSentence = String.Join(' ', prevSentence.Tokens.Select(t => t.Text).ToArray());
-                content += $"\nTake into account that previous sentence is \'{stringRepresentationOfPrevSentence}\'.";
-            }
-
-            if (nextSentence != null)
-            {
-                string stringRepresentationOfNextSentence = String.Join(' ', nextSentence.Tokens.Select(t => t.Text).ToArray());
-                content += $"\nNext sentence is \'{stringRepresentationOfNextSentence}\'.";
-            }
-
-            content += "\nIn the end give me a proper Russian equivalent of this word without transcription.";
-            
-            chat.AppendUserInput(content);
-            string response = await chat.GetResponseFromChatbotAsync();
-            
-            await JsRuntime.InvokeVoidAsync("alert", $"{response}");
-        }
-        else
-        {
-            var stringRepresentations = new List<string>(SelectedSentences.Count);
-            foreach (Sentence sentence in SelectedSentences)
-            {
                 string stringRepresentationOfSentence = String.Join(' ', sentence.Tokens.Select(t => t.Text).ToArray());
-                stringRepresentations.Add(stringRepresentationOfSentence);
+                string content = $"Give me a simple definition for word \'{SelectedWord.Text}\' in the context of the sentence \'{stringRepresentationOfSentence}\'.";
+
+                if (prevSentence != null)
+                {
+                    string stringRepresentationOfPrevSentence = String.Join(' ', prevSentence.Tokens.Select(t => t.Text).ToArray());
+                    content += $"\nTake into account that previous sentence is \'{stringRepresentationOfPrevSentence}\'.";
+                }
+
+                if (nextSentence != null)
+                {
+                    string stringRepresentationOfNextSentence = String.Join(' ', nextSentence.Tokens.Select(t => t.Text).ToArray());
+                    content += $"\nNext sentence is \'{stringRepresentationOfNextSentence}\'.";
+                }
+
+                content += "\nIn the end give me a proper Russian equivalent of this word without transcription.";
+            
+                chat.AppendUserInput(content);
+                string response = await chat.GetResponseFromChatbotAsync();
+            
+                await JsRuntime.InvokeVoidAsync("alert", $"{response}");
             }
+            else
+            {
+                var stringRepresentations = new List<string>(SelectedSentences.Count);
+                foreach (Sentence sentence in SelectedSentences)
+                {
+                    string stringRepresentationOfSentence = String.Join(' ', sentence.Tokens.Select(t => t.Text).ToArray());
+                    stringRepresentations.Add(stringRepresentationOfSentence);
+                }
 
-            var finalJoin = string.Join('\n', stringRepresentations);
+                string finalJoin = string.Join('\n', stringRepresentations);
 
-            string content = $"Paraphrase this sentences and use really simple English words:\n\n\'{finalJoin}\'";
+                string content = $"Paraphrase this sentences and use really simple English words:\n\n\'{finalJoin}\'";
+                
+                chat.AppendUserInput(content);
+                string response = await chat.GetResponseFromChatbotAsync();
             
-            // await JsRuntime.InvokeVoidAsync("alert", $"{content}");
-            
-            chat.AppendUserInput(content);
-            string response = await chat.GetResponseFromChatbotAsync();
-            
-            await JsRuntime.InvokeVoidAsync("alert", $"{response}");
+                await JsRuntime.InvokeVoidAsync("alert", $"{response}");
+            }
+        }
+        catch (Exception e)
+        {
+            await JsRuntime.InvokeVoidAsync("alert", $"{e.Message}");
         }
         
     }
