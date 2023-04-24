@@ -65,9 +65,13 @@
     </main>
 }
 
-<textarea @bind="RawTextAreaContent" class="form-control" rows="5"></textarea>
-<br />
-<button class="btn btn-primary" @onclick="ProcessText">Import</button>
+@if (Sentences.Count == 0)
+{
+    <textarea @bind="RawTextAreaContent" class="form-control" rows="5"></textarea>
+    <br />
+    <button class="btn btn-primary" @onclick="ProcessText">Import</button>
+}
+
 
 <label>
     <input type="radio" name="mode" value="Word" @onchange="ToggleState" checked="@IsWordMode" />
@@ -78,10 +82,13 @@
     Sentence
 </label>
 
-<div>
-    <label for="openAIKey">OpenAI Key:</label>
-    <input id="openAIKey" type="password" class="form-control" @bind="OpenAiKey" />
-</div>
+@if (IsKeyDisplays)
+{
+    <div>
+        <label for="openAIKey">OpenAI Key:</label>
+        <input id="openAIKey" type="password" class="form-control" @bind="OpenAiKey" />
+    </div>
+}
 
 <button @onclick="GetDefinitionOrParaphrase" disabled="@IsButtonDisabled" class="btn btn-secondary">
     @if (CurrentMode == Mode.Word)
@@ -133,6 +140,8 @@
             return false;
         }
     }
+
+    private bool IsKeyDisplays => History.Count == 0;
 
     private List<Token> History
     {
