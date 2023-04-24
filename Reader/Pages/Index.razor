@@ -184,6 +184,11 @@
     
     private void AddSentence(Sentence sentence)
     {
+        if (SelectedSentences.Count == 5)
+        {
+            return;
+        }
+        
         var sentencesWithSameId = SelectedSentences.Where(s => s.Id.Equals(sentence.Id)).ToArray();
         if (sentencesWithSameId.Length != 0)
         {
@@ -240,8 +245,6 @@
 
             content += "\nIn the end give me a proper Russian equivalent of this word without transcription.";
             
-            // await JsRuntime.InvokeVoidAsync("alert", $"{content}");
-
             chat.AppendUserInput(content);
             string response = await chat.GetResponseFromChatbotAsync();
             
