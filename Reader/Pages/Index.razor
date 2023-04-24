@@ -105,7 +105,12 @@
 <ul>
     @foreach (Token token in History)
     {
-        <li>@token.Text - @token.Definition</li>
+        string style = "";
+        if (SelectedWord != null && SelectedWord.Id.Equals(token.Id))
+        {
+            style = "selected-sentence";
+        }
+        <li class="@style">@token.Text - @token.Definition</li>
     }
 </ul>
 
