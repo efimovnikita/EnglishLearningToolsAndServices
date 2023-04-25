@@ -273,23 +273,23 @@
                 }
 
                 string stringRepresentationOfSentence = String.Join(' ', sentence.Tokens.Select(t => t.Text).ToArray());
-                string content = $"Give me a simple definition for word \'{SelectedWord.Text}\' in the context of the sentence \'{stringRepresentationOfSentence}\'.";
+                string request = $"Give me a simple definition for word \'{SelectedWord.Text}\' in the context of the sentence \'{stringRepresentationOfSentence}\'.";
 
                 if (prevSentence != null)
                 {
                     string stringRepresentationOfPrevSentence = String.Join(' ', prevSentence.Tokens.Select(t => t.Text).ToArray());
-                    content += $"\nTake into account that previous sentence is \'{stringRepresentationOfPrevSentence}\'.";
+                    request += $"\nTake into account that previous sentence is \'{stringRepresentationOfPrevSentence}\'.";
                 }
 
                 if (nextSentence != null)
                 {
                     string stringRepresentationOfNextSentence = String.Join(' ', nextSentence.Tokens.Select(t => t.Text).ToArray());
-                    content += $"\nNext sentence is \'{stringRepresentationOfNextSentence}\'.";
+                    request += $"\nNext sentence is \'{stringRepresentationOfNextSentence}\'.";
                 }
 
-                content += "\nIn the end give me a proper Russian equivalent of this word without transcription.";
+                request += "\nIn the end give me a proper Russian equivalent of this word without transcription.";
             
-                chat.AppendUserInput(content);
+                chat.AppendUserInput(request);
                 string response = await chat.GetResponseFromChatbotAsync();
 
                 SelectedWord.Definition = response;
