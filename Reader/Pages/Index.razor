@@ -12,7 +12,7 @@
 
 <PageTitle>Reader</PageTitle>
 
-@if (Sentences.Count > 0)
+@*@if (Sentences.Count > 0)
 {
     <main>
         @foreach (Sentence sentence in Sentences)
@@ -72,7 +72,6 @@
     <button class="btn btn-primary" @onclick="ProcessText">Import</button>
 }
 
-
 <label>
     <input type="radio" name="mode" value="Word" @onchange="ToggleState" checked="@IsWordMode" />
     Word
@@ -112,7 +111,16 @@
         }
         <li class="@style">@token.Text - @token.Definition</li>
     }
-</ul>
+</ul>*@
+
+<main class="bg-[#F9FAFB] flex flex-col w-full lg:max-w-[900px] p-2.5 rounded-[15px] gap-[10px]">
+    <textarea @bind="RawTextAreaContent" class="bg-[#F0F5FF] w-full h-full rounded-[10px] border-dashed border-[1px] border-[#B4C6FC] p-2.5 text-[#374151] text-[16px]"></textarea>
+    <div id="buttons-container" class="flex justify-center items-center">
+        <button type="button" class="flex w-[50px] h-[50px] bg-[#6875F5] justify-center items-center rounded-full pt-[5px]">
+            <img src="assets/plus.svg" alt="" width="32" height="32"/>
+        </button>
+    </div>
+</main>
 
 @code {
     private string? RawTextAreaContent { get; set; }
