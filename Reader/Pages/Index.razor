@@ -286,15 +286,18 @@
                     string stringRepresentationOfNextSentence = String.Join(' ', nextSentence.Tokens.Select(t => t.Text).ToArray());
                     request += $"\nNext sentence is \'{stringRepresentationOfNextSentence}\'.";
                 }
-
-                request += "\nIn the end give me a proper Russian equivalent of this word without transcription.";
-            
+                
                 chat.AppendUserInput(request);
                 string response = await chat.GetResponseFromChatbotAsync();
 
-                SelectedWord.Definition = response;
+                chat = api.Chat.CreateConversation();
+                chat.AppendUserInput($"Give me a list of 3 most appropriate synonyms for word \'{SelectedWord.Text}\' in the context of the sentence \'{stringRepresentationOfSentence}\'. Split synonyms by comma. Follow the pattern: \'Synonyms: list of synonyms.\'");
+                string synonymsResponse = await chat.GetResponseFromChatbotAsync();
+
+                SelectedWord.Definition = $"{response}";
+                SelectedWord.Definition += $"\n{synonymsResponse}";
             
-                await JsRuntime.InvokeVoidAsync("alert", $"{response}");
+                await JsRuntime.InvokeVoidAsync("alert", $"{SelectedWord.Definition}");
             }
             else
             {
