@@ -3,107 +3,6 @@
 
 <PageTitle>Reader</PageTitle>
 
-@*@if (Sentences.Count > 0)
-{
-    <main>
-        @foreach (Sentence sentence in Sentences)
-        {
-            if (CurrentMode == Mode.Word)
-            {
-                <p>
-                @foreach (Token token in sentence.Tokens)
-                {
-                    if (IsWord(token))
-                    {
-                        string style = "word";
-                        if (SelectedWord != null && token.Id.Equals(SelectedWord.Id))
-                        {
-                            style = "selected-word";
-                        }
-                        <span class="@style" @onclick="() => AddWord(token)">@token.Text</span>
-                    }
-                    else
-                    {
-                        @token.Text
-                    }
-
-                    int i = sentence.Tokens.IndexOf(token);
-                    if (i + 1 < sentence.Tokens.Count)
-                    {
-                        if (IsWord(sentence.Tokens[i + 1]))
-                        {
-                            @(' ')
-                        }
-                    }
-                }
-                </p>
-            }
-            else
-            {
-                string style = "sentence";
-                if (SelectedSentences.FirstOrDefault(s => s.Id.Equals(sentence.Id)) != null)
-                {
-                    style = "selected-sentence";
-                }
-                <p class="@style" @onclick="() => AddSentence(sentence)">
-                   @foreach (Token token in sentence.Tokens)
-                    {
-                        <text>@token.Text&nbsp;</text>
-                    }
-                </p>
-            }
-        }
-    </main>
-}
-
-@if (Sentences.Count == 0)
-{
-    <textarea @bind="RawTextAreaContent" class="form-control" rows="5"></textarea>
-    <br />
-    <button class="btn btn-primary" @onclick="ProcessText">Import</button>
-}
-
-<label>
-    <input type="radio" name="mode" value="Word" @onchange="ToggleState" checked="@IsWordMode" />
-    Word
-</label>
-<label>
-    <input type="radio" name="mode" value="Sentence" @onchange="ToggleState" checked="@IsSentenceMode" />
-    Sentence
-</label>
-
-@if (IsKeyDisplays)
-{
-    <div>
-        <label for="openAIKey">OpenAI Key:</label>
-        <input id="openAIKey" type="password" class="form-control" @bind="OpenAiKey" />
-    </div>
-}
-
-<button @onclick="GetDefinitionOrParaphrase" disabled="@IsButtonDisabled" class="btn btn-secondary">
-    @if (CurrentMode == Mode.Word)
-    {
-        <text>Get definition</text>
-    }
-    else
-    {
-        <text>Paraphrase</text>
-    }
-</button>
-
-<p>History</p>
-<ul>
-    @foreach (Token token in History)
-    {
-        string style = "";
-        if (SelectedWord != null && SelectedWord.Id.Equals(token.Id))
-        {
-            style = "selected-sentence";
-        }
-        <li class="@style">@token.Text - @token.Definition</li>
-    }
-</ul>*@
-
 @{
     string mainStyle = "mx-auto bg-[#F9FAFB] flex flex-col w-full lg:max-w-[900px] p-2.5 rounded-[15px]";
     if (ShowModal || ShowHistory || ShowSettings)
@@ -241,18 +140,10 @@
     <ModalSettingsWindow Title="Settings" OpenAiKeyChanged="s => OpenAiKey = s" Content="@OpenAiKey" ModalType="ModalType.Regular" CloseModal="() => ShowSettings = false" />
 }
 
-
-
 @code {
     private string? RawTextAreaContent { get; set; }
     private List<Sentence> Sentences { get; set; } = new();
     private Mode CurrentMode { get; set; } = Mode.Word;
-/*
-    private bool IsWordMode => CurrentMode == Mode.Word;
-*/
-/*
-    private bool IsSentenceMode => CurrentMode == Mode.Sentence;
-*/
     private List<Sentence> SelectedSentences { get; set; } = new();
     private Token? SelectedWord { get; set; }
     [Parameter]
@@ -473,16 +364,7 @@
         
     }
 
-    // private void ShowHistory()
-    // {
-    //     Modal.Title = "History";
-    //     Modal.TextContent = response;
-    //     Modal.ModalType = ModalType.Regular;
-    //     ShowModal = true;
-    // }
-
     private bool ShowHistory { get; set; }
 
     private bool ShowSettings { get; set; }
-
 }
