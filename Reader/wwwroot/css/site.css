@@ -521,16 +521,8 @@ video {
   --tw-backdrop-sepia:  ;
 }
 
-.static {
-  position: static;
-}
-
 .absolute {
   position: absolute;
-}
-
-.relative {
-  position: relative;
 }
 
 .bottom-0 {
@@ -541,18 +533,9 @@ video {
   left: 0px;
 }
 
-.top-0 {
-  top: 0px;
-}
-
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
-}
-
-.my-auto {
-  margin-top: auto;
-  margin-bottom: auto;
 }
 
 .mt-2 {
@@ -567,12 +550,20 @@ video {
   display: flex;
 }
 
+.h-\[1px\] {
+  height: 1px;
+}
+
 .h-\[20px\] {
   height: 20px;
 }
 
 .h-\[26px\] {
   height: 26px;
+}
+
+.h-\[30px\] {
+  height: 30px;
 }
 
 .h-\[50px\] {
@@ -587,24 +578,12 @@ video {
   height: 100vh;
 }
 
-.h-\[54px\] {
-  height: 54px;
-}
-
-.h-\[25px\] {
-  height: 25px;
-}
-
-.h-\[30px\] {
-  height: 30px;
-}
-
-.h-\[1px\] {
-  height: 1px;
-}
-
 .w-\[20px\] {
   width: 20px;
+}
+
+.w-\[30px\] {
+  width: 30px;
 }
 
 .w-\[50px\] {
@@ -619,18 +598,6 @@ video {
   width: 100vw;
 }
 
-.w-\[54px\] {
-  width: 54px;
-}
-
-.w-\[25px\] {
-  width: 25px;
-}
-
-.w-\[30px\] {
-  width: 30px;
-}
-
 .flex-1 {
   flex: 1 1 0%;
 }
@@ -641,6 +608,10 @@ video {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.resize-none {
+  resize: none;
 }
 
 .flex-col {
@@ -732,6 +703,10 @@ video {
   background-color: rgb(180 198 252 / var(--tw-bg-opacity));
 }
 
+.bg-\[\#D1D5DB\]\/50 {
+  background-color: rgb(209 213 219 / 0.5);
+}
+
 .bg-\[\#E5EDFF\] {
   --tw-bg-opacity: 1;
   background-color: rgb(229 237 255 / var(--tw-bg-opacity));
@@ -754,48 +729,6 @@ video {
 
 .bg-transparent {
   background-color: transparent;
-}
-
-.bg-red-400 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(248 113 113 / var(--tw-bg-opacity));
-}
-
-.bg-\[\#D1D5DB\]\/50 {
-  background-color: rgb(209 213 219 / 0.5);
-}
-
-.bg-\[\#D1D5DB\/50\] {
-  background-color: #D1D5DB/50;
-}
-
-.bg-\[\#D1D5DB\/90\] {
-  background-color: #D1D5DB/90;
-}
-
-.bg-\[\#D1D5DB\/10\] {
-  background-color: #D1D5DB/10;
-}
-
-.bg-\[\#D1D5DB\]\/10 {
-  background-color: rgb(209 213 219 / 0.1);
-}
-
-.bg-\[\#D1D5DB\]\/90 {
-  background-color: rgb(209 213 219 / 0.9);
-}
-
-.bg-red-400\/90 {
-  background-color: rgb(248 113 113 / 0.9);
-}
-
-.bg-sky-500\/50 {
-  background-color: rgb(14 165 233 / 0.5);
-}
-
-.bg-\[\#CDDBFE\] {
-  --tw-bg-opacity: 1;
-  background-color: rgb(205 219 254 / var(--tw-bg-opacity));
 }
 
 .p-1 {
@@ -828,14 +761,14 @@ video {
   padding-right: 0.625rem;
 }
 
-.px-\[3px\] {
-  padding-left: 3px;
-  padding-right: 3px;
-}
-
 .px-\[10px\] {
   padding-left: 10px;
   padding-right: 10px;
+}
+
+.px-\[3px\] {
+  padding-left: 3px;
+  padding-right: 3px;
 }
 
 .pt-2 {
@@ -848,10 +781,6 @@ video {
 
 .pt-\[5px\] {
   padding-top: 5px;
-}
-
-.text-center {
-  text-align: center;
 }
 
 .text-\[16px\] {
@@ -878,31 +807,6 @@ video {
 .text-\[\#5850EC\] {
   --tw-text-opacity: 1;
   color: rgb(88 80 236 / var(--tw-text-opacity));
-}
-
-.blur-sm {
-  --tw-blur: blur(4px);
-  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
-}
-
-.blur-none {
-  --tw-blur: blur(0);
-  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
-}
-
-.blur-lg {
-  --tw-blur: blur(16px);
-  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
-}
-
-.blur-xl {
-  --tw-blur: blur(24px);
-  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
-}
-
-.blur-md {
-  --tw-blur: blur(12px);
-  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 
 .blur {
@@ -969,10 +873,6 @@ video {
 
 .scrollbar-track-\[\#E5EDFF\] {
   --scrollbar-track: #E5EDFF !important;
-}
-
-.scrollbar-thumb-blue-700 {
-  --scrollbar-thumb: #1d4ed8 !important;
 }
 
 .scrollbar-thumb-\[\#B4C6FC\] {
