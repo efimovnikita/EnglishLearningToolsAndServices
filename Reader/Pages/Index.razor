@@ -70,15 +70,15 @@
     <div id="buttons-container" class="flex justify-center items-center mt-2.5 gap-[10px]">
         @if (Sentences.Count == 0)
         {
-            <button type="button" @onclick="ProcessText" class="flex w-[50px] h-[50px] bg-[#6875F5] justify-center items-center rounded-full pt-[5px] hover:bg-[#5145CD]">
-                <img src="assets/plus.svg" alt="" width="32" height="32"/>
+            <button type="button" @onclick="ProcessText" class="flex w-[50px] h-[50px] bg-[#6875F5] justify-center items-center rounded-full hover:bg-[#5145CD]">
+                <img src="assets/plus.svg" alt="" width="40" height="40"/>
             </button>
         }
         else
         {
-            string getDefinitionsButtonStyle = "flex w-[50px] h-[50px] justify-center items-center rounded-full pt-[5px]";
+            string getDefinitionsButtonStyle = "flex w-[50px] h-[50px] justify-center items-center rounded-full";
             string historyButtonStyle = getDefinitionsButtonStyle;
-            if (IsButtonDisabled)
+            if (IsButtonDisabled || IsLoading)
             {
                 getDefinitionsButtonStyle += " cursor-default bg-[#9CA3AF]";
             }
@@ -98,10 +98,10 @@
             }
             
             <button type="button" class="@historyButtonStyle" @onclick="() => ShowHistory = true">
-                <img src="assets/history.svg" alt="" width="39" height="35"/>
+                <img src="assets/history.svg" alt="" width="40" height="40"/>
             </button>
             <button type="button" @onclick="() => ShowSettings = true" class="flex w-[50px] h-[50px] bg-[#6875F5] justify-center items-center rounded-full hover:bg-[#5145CD]">
-                <img src="assets/settings.svg" alt="" width="41" height="37"/>
+                <img src="assets/settings.svg" alt="" width="40" height="40"/>
             </button>
             
             string style = "flex items-center justify-start w-[50px] h-[26px] bg-[#6875F5] hover:bg-[#5145CD] rounded-full px-[3px]";
@@ -112,14 +112,20 @@
             <button type="button" @onclick="ToggleState" class="flex p-2.5 gap-[10px]">
                 <p class="text-[#5850EC]">W</p>
                 <div class="@style">
-                    <div class="bg-[#E5EDFF] w-[20px] h-[20px] rounded-full drop-shadow-xl"></div>
+                    <div class="bg-[#E5EDFF] w-[20px] h-[20px] rounded-full"></div>
                 </div>
                 <p class="text-[#5850EC]">S</p>
             </button>
             
-            
             <button type="button" class="@getDefinitionsButtonStyle" @onclick="GetDefinitionOrParaphrase">
-                <img src="assets/question.svg" alt="" width="26" height="35"/>
+                @if (IsLoading == false)
+                {
+                    <img src="assets/question.svg" alt="" width="40" height="40"/>
+                }
+                else
+                {
+                    <img src="assets/spinner.svg" class="animate-spin" alt="" width="40" height="40"/>
+                }
             </button>
         }
     </div>
@@ -268,6 +274,7 @@
 
     private async Task GetDefinitionOrParaphrase()
     {
+        IsLoading = true;
         try
         {
             OpenAIAPI api = new(OpenAiKey);
@@ -280,9 +287,9 @@
                     Modal.TextContent = SelectedWord.Definition;
                     Modal.ModalType = ModalType.Regular;
                     ShowModal = true;
-                    return;    
+                    return;
                 }
-                
+
                 Sentence? sentence = Sentences.FirstOrDefault(s => s.Id.Equals(SelectedWord.SentenceId));
                 if (sentence == null)
                 {
@@ -316,7 +323,7 @@
                     string stringRepresentationOfNextSentence = String.Join(' ', nextSentence.Tokens.Select(t => t.Text).ToArray());
                     request += $"\nNext sentence is \'{stringRepresentationOfNextSentence}\'.";
                 }
-                
+
                 chat.AppendUserInput(request);
                 string response = await chat.GetResponseFromChatbotAsync();
 
@@ -326,7 +333,7 @@
 
                 SelectedWord.Definition = $"{response}";
                 SelectedWord.Definition += $"\n{synonymsResponse}";
-            
+
                 Modal.Title = "Definition";
                 Modal.TextContent = SelectedWord.Definition;
                 Modal.ModalType = ModalType.Regular;
@@ -344,10 +351,10 @@
                 string finalJoin = string.Join('\n', stringRepresentations);
 
                 string content = $"Paraphrase this sentences and use really simple English words:\n\n\'{finalJoin}\'";
-                
+
                 chat.AppendUserInput(content);
                 string response = await chat.GetResponseFromChatbotAsync();
-            
+
                 Modal.Title = "Paraphrased version";
                 Modal.TextContent = response;
                 Modal.ModalType = ModalType.Regular;
@@ -361,10 +368,16 @@
             Modal.ModalType = ModalType.Error;
             ShowModal = true;
         }
+        finally
+        {
+            IsLoading = false;
+        }
         
     }
 
     private bool ShowHistory { get; set; }
 
     private bool ShowSettings { get; set; }
+    public bool IsLoading { get; set; }
+
 }

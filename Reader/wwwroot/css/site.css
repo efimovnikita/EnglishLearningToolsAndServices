@@ -578,12 +578,12 @@ video {
   height: 100vh;
 }
 
-.max-h-\[500px\] {
-  max-height: 500px;
-}
-
 .max-h-\[350px\] {
   max-height: 350px;
+}
+
+.w-\[200px\] {
+  width: 200px;
 }
 
 .w-\[20px\] {
@@ -606,24 +606,123 @@ video {
   width: 100vw;
 }
 
-.w-\[150px\] {
-  width: 150px;
-}
-
-.w-\[200px\] {
-  width: 200px;
-}
-
-.max-w-\[500px\] {
-  max-width: 500px;
-}
-
 .flex-1 {
   flex: 1 1 0%;
 }
 
-.flex-auto {
-  flex: 1 1 auto;
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: .5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8,0,1,1);
+  }
+
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0,0,0.2,1);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+.animate-\[wiggle_1s_ease-in-out_infinite\] {
+  animation: wiggle 1s ease-in-out infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-\[ping_1s_ease-in-out_infinite\] {
+  animation: ping 1s ease-in-out infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-\[ping_0\.5s_ease-in-out_infinite\] {
+  animation: ping 0.5s ease-in-out infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-\[ping_1s_cubic-bezier\(0_0_0\.2_1\)_infinite\] {
+  animation: ping 1s cubic-bezier(0 0 0.2 1) infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-\[ping_1s_cubic-bezier_0_0_0\.2_1_infinite\] {
+  animation: ping 1s cubic-bezier 0 0 0.2 1 infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-\[spin_3s_linear_infinite\] {
+  animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-\[spin_5s_linear_infinite\] {
+  animation: spin 5s linear infinite;
 }
 
 .cursor-default {
@@ -969,16 +1068,54 @@ video {
   background-color: rgb(252 233 106 / var(--tw-bg-opacity));
 }
 
-@media (min-width: 1024px) {
-  .lg\:w-full {
-    width: 100%;
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
+  .motion-safe\:animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(-25%);
+      animation-timing-function: cubic-bezier(0.8,0,1,1);
+    }
+
+    50% {
+      transform: none;
+      animation-timing-function: cubic-bezier(0,0,0.2,1);
+    }
+  }
+
+  .motion-safe\:animate-bounce {
+    animation: bounce 1s infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(-25%);
+      animation-timing-function: cubic-bezier(0.8,0,1,1);
+    }
+
+    50% {
+      transform: none;
+      animation-timing-function: cubic-bezier(0,0,0.2,1);
+    }
+  }
+
+  .motion-reduce\:animate-bounce {
+    animation: bounce 1s infinite;
+  }
+}
+
+@media (min-width: 1024px) {
   .lg\:max-w-\[900px\] {
     max-width: 900px;
-  }
-
-  .lg\:flex-1 {
-    flex: 1 1 0%;
   }
 }
