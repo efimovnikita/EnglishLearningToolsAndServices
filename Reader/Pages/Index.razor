@@ -1,15 +1,6 @@
 ﻿@page "/"
 @page "/key/{openAiKey}"
 
-@using System.Text.RegularExpressions
-@using java.io
-@using OpenAI_API
-@using OpenAI_API.Chat
-@using opennlp.tools.sentdetect
-@using opennlp.tools.tokenize
-@using Reader.Models
-@inject IJSRuntime JsRuntime
-
 <PageTitle>Reader</PageTitle>
 
 @*@if (Sentences.Count > 0)
@@ -115,7 +106,7 @@
 
 @{
     string mainStyle = "mx-auto bg-[#F9FAFB] flex flex-col w-full lg:max-w-[900px] p-2.5 rounded-[15px]";
-    if (ShowModal)
+    if (ShowModal || ShowHistory || ShowSettings)
     {
         mainStyle += " blur";
     }
@@ -186,27 +177,8 @@
         }
         else
         {
-            <button type="button" class="flex w-[50px] h-[50px] bg-[#9CA3AF] justify-center items-center rounded-full pt-[5px] cursor-default">
-                <img src="assets/history.svg" alt="" width="39" height="35"/>
-            </button>
-            <button type="button" class="flex w-[50px] h-[50px] bg-[#6875F5] justify-center items-center rounded-full hover:bg-[#5145CD]">
-                <img src="assets/settings.svg" alt="" width="41" height="37"/>
-            </button>
-            <button type="button" @onclick="ToggleState" class="flex p-2.5 gap-[10px]">
-                <p class="text-[#5850EC]">W</p>
-                @{
-                    string style = "flex items-center justify-start w-[50px] h-[26px] bg-[#6875F5] hover:bg-[#5145CD] rounded-full px-[3px]";
-                    if (CurrentMode == Mode.Sentence)
-                    {
-                        style += " justify-end";
-                    }
-                }
-                <div class="@style">
-                    <div class="bg-[#E5EDFF] w-[20px] h-[20px] rounded-full drop-shadow-xl"></div>
-                </div>
-                <p class="text-[#5850EC]">S</p>
-            </button>
             string getDefinitionsButtonStyle = "flex w-[50px] h-[50px] justify-center items-center rounded-full pt-[5px]";
+            string historyButtonStyle = getDefinitionsButtonStyle;
             if (IsButtonDisabled)
             {
                 getDefinitionsButtonStyle += " cursor-default bg-[#9CA3AF]";
@@ -215,6 +187,38 @@
             {
                 getDefinitionsButtonStyle += " bg-[#6875F5] hover:bg-[#5145CD]";
             }
+
+            if (History.Count > 0)
+            {
+                historyButtonStyle += " bg-[#6875F5] hover:bg-[#5145CD]";
+
+            }
+            else
+            {
+                historyButtonStyle += " cursor-default bg-[#9CA3AF]";
+            }
+            
+            <button type="button" class="@historyButtonStyle" @onclick="() => ShowHistory = true">
+                <img src="assets/history.svg" alt="" width="39" height="35"/>
+            </button>
+            <button type="button" @onclick="() => ShowSettings = true" class="flex w-[50px] h-[50px] bg-[#6875F5] justify-center items-center rounded-full hover:bg-[#5145CD]">
+                <img src="assets/settings.svg" alt="" width="41" height="37"/>
+            </button>
+            
+            string style = "flex items-center justify-start w-[50px] h-[26px] bg-[#6875F5] hover:bg-[#5145CD] rounded-full px-[3px]";
+            if (CurrentMode == Mode.Sentence)
+            {
+                style += " justify-end";
+            }
+            <button type="button" @onclick="ToggleState" class="flex p-2.5 gap-[10px]">
+                <p class="text-[#5850EC]">W</p>
+                <div class="@style">
+                    <div class="bg-[#E5EDFF] w-[20px] h-[20px] rounded-full drop-shadow-xl"></div>
+                </div>
+                <p class="text-[#5850EC]">S</p>
+            </button>
+            
+            
             <button type="button" class="@getDefinitionsButtonStyle" @onclick="GetDefinitionOrParaphrase">
                 <img src="assets/question.svg" alt="" width="26" height="35"/>
             </button>
@@ -224,29 +228,31 @@
 
 @if (ShowModal)
 {
-    <div id="modal" class="absolute bottom-0 left-0 w-full h-full bg-[#D1D5DB]/50 flex justify-center items-center px-[10px]">
-        <div id="modal-window" class="bg-[#F9FAFB] w-full rounded-[15px] lg:max-w-[900px] flex flex-col border-[1px] border-[#CDDBFE]">
-            <div id="title" class="flex justify-between p-[5px]">
-                <p class="flex flex-1 justify-center items-center uppercase text-[#374151] text-[18px]">Definition</p>
-                <button type="button" @onclick="CloseModal" class="flex justify-center items-center w-[30px] h-[30px] bg-[#B4C6FC] hover:bg-[#5145CD] rounded-full">
-                    <img src="assets/cross.svg" alt="" width="15" height="15"/>
-                </button>
-            </div>
-            <div id="separator" class="h-[1px] w-full border-t-[1px] border-[#CDDBFE]"></div>
-            <div id="nodal-content" class="flex justify-between p-[5px]">
-                <p class="flex w-full justify-center items-center text-[#374151] text-[18px]">In this context, 'remained' means that the situation in the mentioned place is still unstable and dangerous, and has not improved or changed much since the warning was issued.</p>
-            </div>
-        </div>
-    </div>
+    <ModalWindow Title="@Modal.Title" Content="@Modal.TextContent" ModalType="@Modal.ModalType" CloseModal="CloseModal" />
 }
+
+@if (ShowHistory)
+{
+    <ModalHistoryWindow Title="History" Content="@History" ModalType="ModalType.Regular" CloseModal="() => ShowHistory = false" />
+}
+
+@if (ShowSettings)
+{
+    <ModalSettingsWindow Title="Settings" OpenAiKeyChanged="s => OpenAiKey = s" Content="@OpenAiKey" ModalType="ModalType.Regular" CloseModal="() => ShowSettings = false" />
+}
+
 
 
 @code {
     private string? RawTextAreaContent { get; set; }
     private List<Sentence> Sentences { get; set; } = new();
     private Mode CurrentMode { get; set; } = Mode.Word;
+/*
     private bool IsWordMode => CurrentMode == Mode.Word;
+*/
+/*
     private bool IsSentenceMode => CurrentMode == Mode.Sentence;
+*/
     private List<Sentence> SelectedSentences { get; set; } = new();
     private Token? SelectedWord { get; set; }
     [Parameter]
@@ -273,9 +279,9 @@
         }
     }
 
-    public bool ShowModal { get; set; } = true;
+    private bool ShowModal { get; set; }
 
-    private bool IsKeyDisplays => History.Count == 0;
+    private Modal Modal { get; set; } = new();
 
     private List<Token> History
     {
@@ -290,16 +296,6 @@
             return result;
         }
     }
-
-
-/*
-    private void ToggleState(ChangeEventArgs e)
-    {
-        SelectedWord = null;
-        SelectedSentences.Clear();
-        CurrentMode = (Mode)Enum.Parse(typeof(Mode), e.Value!.ToString()!);
-    }
-*/
 
     private void CloseModal() => ShowModal = false;
 
@@ -326,8 +322,8 @@
             return;
         }
 
-        InputStream sentenceModelIn = new FileInputStream("opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin");
-        InputStream tokensModelIn = new FileInputStream("opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin");
+        java.io.InputStream sentenceModelIn = new java.io.FileInputStream("opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin");
+        java.io.InputStream tokensModelIn = new java.io.FileInputStream("opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin");
         SentenceModel sentenceModel = new(sentenceModelIn);
         TokenizerModel tokenizerModel = new(tokensModelIn);
         SentenceDetectorME sentenceDetector = new(sentenceModel);
@@ -389,7 +385,10 @@
             {
                 if (String.IsNullOrWhiteSpace(SelectedWord.Definition) == false)
                 {
-                    await JsRuntime.InvokeVoidAsync("alert", $"{SelectedWord.Definition}");
+                    Modal.Title = "Definition";
+                    Modal.TextContent = SelectedWord.Definition;
+                    Modal.ModalType = ModalType.Regular;
+                    ShowModal = true;
                     return;    
                 }
                 
@@ -437,7 +436,10 @@
                 SelectedWord.Definition = $"{response}";
                 SelectedWord.Definition += $"\n{synonymsResponse}";
             
-                await JsRuntime.InvokeVoidAsync("alert", $"{SelectedWord.Definition}");
+                Modal.Title = "Definition";
+                Modal.TextContent = SelectedWord.Definition;
+                Modal.ModalType = ModalType.Regular;
+                ShowModal = true;
             }
             else
             {
@@ -455,15 +457,32 @@
                 chat.AppendUserInput(content);
                 string response = await chat.GetResponseFromChatbotAsync();
             
-                await JsRuntime.InvokeVoidAsync("alert", $"{response}");
+                Modal.Title = "Paraphrased version";
+                Modal.TextContent = response;
+                Modal.ModalType = ModalType.Regular;
+                ShowModal = true;
             }
         }
         catch (Exception e)
         {
-            await JsRuntime.InvokeVoidAsync("alert", $"{e.Message}");
+            Modal.Title = "Error";
+            Modal.TextContent = e.Message;
+            Modal.ModalType = ModalType.Error;
+            ShowModal = true;
         }
         
     }
 
+    // private void ShowHistory()
+    // {
+    //     Modal.Title = "History";
+    //     Modal.TextContent = response;
+    //     Modal.ModalType = ModalType.Regular;
+    //     ShowModal = true;
+    // }
+
+    private bool ShowHistory { get; set; }
+
+    private bool ShowSettings { get; set; }
 
 }

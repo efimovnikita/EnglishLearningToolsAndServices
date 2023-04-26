@@ -1,0 +1,76 @@
+@namespace Reader.Shared
+
+@{
+    string modalStyle = "absolute bottom-0 left-0 w-full h-full flex justify-center items-center px-[10px]";
+    string modalWindowStyle = "bg-[#F9FAFB] w-full rounded-[15px] lg:max-w-[900px] flex flex-col border-[1px]";
+    string titleTextStyle = "flex flex-1 justify-center items-center uppercase text-[18px]";
+    string closeButtonStyle = "flex justify-center items-center w-[30px] h-[30px] rounded-full";
+    string separatorStyle = "h-[1px] w-full border-t-[1px]";
+    string contentTextStyle = "scrollbar-thin scrollbar-thumb-[#B4C6FC] scrollbar-track-[#E5EDFF] overflow-auto max-h-[350px] flex flex-col gap-[20px] w-full text-[18px]";
+
+    if (ModalType == ModalType.Regular)
+    {
+        modalStyle += " bg-[#D1D5DB]/50";
+        modalWindowStyle += " border-[#CDDBFE]";
+        titleTextStyle += " text-[#374151]";
+        closeButtonStyle += " bg-[#B4C6FC] hover:bg-[#5145CD]";
+        separatorStyle += " border-[#CDDBFE]";
+        contentTextStyle += " text-[#374151]";
+    }
+
+    if (ModalType == ModalType.Warning)
+    {
+        modalStyle += " bg-[#FDFDEA]/50";
+        modalWindowStyle += " border-[#FACA15]";
+        titleTextStyle += " text-[#8E4B10]";
+        closeButtonStyle += " bg-[#FACA15] hover:bg-[#9F580A]";
+        separatorStyle += " border-[#FACA15]";
+        contentTextStyle += " text-[#8E4B10]";
+    }
+    
+    if (ModalType == ModalType.Error)
+    {
+        modalStyle += " bg-[#FDF2F2]/50";
+        modalWindowStyle += " border-[#F8B4B4]";
+        titleTextStyle += " text-[#771D1D]";
+        closeButtonStyle += " bg-[#F98080] hover:bg-[#E02424]";
+        separatorStyle += " border-[#F8B4B4]";
+        contentTextStyle += " text-[#771D1D]";
+    }
+}
+
+<div id="modal" class="@modalStyle">
+    <div id="modal-window" class="@modalWindowStyle">
+        <div id="title" class="flex justify-between p-[5px]">
+            <p class="@titleTextStyle">@Title</p>
+            <button type="button" @onclick="CloseModal" class="@closeButtonStyle">
+                <img src="assets/cross.svg" alt="" width="15" height="15"/>
+            </button>
+        </div>
+        <div id="separator" class="@separatorStyle"></div>
+        <div id="modal-content" class="flex w-full p-[10px]">
+            <ul class="@contentTextStyle">
+                @foreach (Token item in Content)
+                {
+                    <li>
+                        <span class="font-bold">@item.Text</span> - @item.Definition
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Title { get; set; } = "";
+
+    [Parameter]
+    public List<Token> Content { get; set; } = new();
+
+    [Parameter]
+    public ModalType ModalType { get; set; } = ModalType.Regular;
+    
+    [Parameter] public EventCallback CloseModal { get; set; }
+}

@@ -1,4 +1,6 @@
 ﻿@using System.Net.Http
+@using Reader.Models
+@using Reader.Shared
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
@@ -6,5 +8,9 @@
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.JSInterop
-@using Reader
-@using Reader.Shared
+@using System.Text.RegularExpressions
+@using OpenAI_API
+@using OpenAI_API.Chat
+@using opennlp.tools.sentdetect
+@using opennlp.tools.tokenize
+
