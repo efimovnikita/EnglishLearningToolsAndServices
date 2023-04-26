@@ -32,21 +32,21 @@
                                 {
                                     style = "rounded-[5px] bg-[#FCE96A] cursor-pointer";
                                 }
-                                <span class="@style" @onclick="() => AddWord(token)">@token.Text</span>
+                                <span class="@style" @onclick="() => AddWord(token)">@token.Text@(' ')</span>
                             }
                             else
                             {
-                                @token.Text
+                                @token.Text@(' ')
                             }
 
-                            int i = sentence.Tokens.IndexOf(token);
+                            @*int i = sentence.Tokens.IndexOf(token);
                             if (i + 1 < sentence.Tokens.Count)
                             {
                                 if (IsWord(sentence.Tokens[i + 1]))
                                 {
                                     @(' ')
                                 }
-                            }
+                            }*@
                         }
                     </p>
                 }
