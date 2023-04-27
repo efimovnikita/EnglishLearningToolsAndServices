@@ -3,7 +3,7 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="flex w-full h-full">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,7 +11,7 @@
     <link href="css/site.css" rel="stylesheet" />
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
-<body class="h-screen w-screen bg-[#B4C6FC] p-1.5 flex justify-center">
+<body class="flex-1 bg-[#B4C6FC] p-1.5 flex justify-center">
     @RenderBody()
 
     @*<div id="blazor-error-ui">

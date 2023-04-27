@@ -521,6 +521,10 @@ video {
   --tw-backdrop-sepia:  ;
 }
 
+.static {
+  position: static;
+}
+
 .absolute {
   position: absolute;
 }
@@ -574,10 +578,6 @@ video {
   height: 100%;
 }
 
-.h-screen {
-  height: 100vh;
-}
-
 .max-h-\[350px\] {
   max-height: 350px;
 }
@@ -602,23 +602,8 @@ video {
   width: 100%;
 }
 
-.w-screen {
-  width: 100vw;
-}
-
 .flex-1 {
   flex: 1 1 0%;
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-.animate-ping {
-  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 @keyframes spin {
@@ -629,100 +614,6 @@ video {
 
 .animate-spin {
   animation: spin 1s linear infinite;
-}
-
-@keyframes pulse {
-  50% {
-    opacity: .5;
-  }
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(-25%);
-    animation-timing-function: cubic-bezier(0.8,0,1,1);
-  }
-
-  50% {
-    transform: none;
-    animation-timing-function: cubic-bezier(0,0,0.2,1);
-  }
-}
-
-.animate-bounce {
-  animation: bounce 1s infinite;
-}
-
-.animate-\[wiggle_1s_ease-in-out_infinite\] {
-  animation: wiggle 1s ease-in-out infinite;
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-.animate-\[ping_1s_ease-in-out_infinite\] {
-  animation: ping 1s ease-in-out infinite;
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-.animate-\[ping_0\.5s_ease-in-out_infinite\] {
-  animation: ping 0.5s ease-in-out infinite;
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-.animate-\[ping_1s_cubic-bezier\(0_0_0\.2_1\)_infinite\] {
-  animation: ping 1s cubic-bezier(0 0 0.2 1) infinite;
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-.animate-\[ping_1s_cubic-bezier_0_0_0\.2_1_infinite\] {
-  animation: ping 1s cubic-bezier 0 0 0.2 1 infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-\[spin_3s_linear_infinite\] {
-  animation: spin 3s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-\[spin_5s_linear_infinite\] {
-  animation: spin 5s linear infinite;
 }
 
 .cursor-default {
@@ -934,10 +825,6 @@ video {
   padding-top: 0.625rem;
 }
 
-.pt-\[5px\] {
-  padding-top: 5px;
-}
-
 .text-\[16px\] {
   font-size: 16px;
 }
@@ -980,11 +867,6 @@ video {
 
 .blur {
   --tw-blur: blur(8px);
-  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
-}
-
-.drop-shadow-xl {
-  --tw-drop-shadow: drop-shadow(0 20px 13px rgb(0 0 0 / 0.03)) drop-shadow(0 8px 5px rgb(0 0 0 / 0.08));
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
 
@@ -1066,52 +948,6 @@ video {
 .hover\:bg-\[\#FCE96A\]:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(252 233 106 / var(--tw-bg-opacity));
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .motion-safe\:animate-spin {
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes bounce {
-    0%, 100% {
-      transform: translateY(-25%);
-      animation-timing-function: cubic-bezier(0.8,0,1,1);
-    }
-
-    50% {
-      transform: none;
-      animation-timing-function: cubic-bezier(0,0,0.2,1);
-    }
-  }
-
-  .motion-safe\:animate-bounce {
-    animation: bounce 1s infinite;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  @keyframes bounce {
-    0%, 100% {
-      transform: translateY(-25%);
-      animation-timing-function: cubic-bezier(0.8,0,1,1);
-    }
-
-    50% {
-      transform: none;
-      animation-timing-function: cubic-bezier(0,0,0.2,1);
-    }
-  }
-
-  .motion-reduce\:animate-bounce {
-    animation: bounce 1s infinite;
-  }
 }
 
 @media (min-width: 1024px) {
