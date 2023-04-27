@@ -126,7 +126,7 @@
 
 @if (ShowModal)
 {
-    <ModalWindow Title="@Modal.Title" Content="@Modal.TextContent" ModalType="@Modal.ModalType" CloseModal="CloseModal" />
+    <ModalWindow Title="@Modal.Title" Content="@Modal.TextContent" ModalType="@Modal.ModalType" CloseModal="() => ShowModal = false" />
 }
 
 @if (ShowHistory)
@@ -189,9 +189,7 @@
             return result;
         }
     }
-
-    private void CloseModal() => ShowModal = false;
-
+    
     private void ToggleState()
     {
         SelectedWord = null;
@@ -199,40 +197,47 @@
         CurrentMode = CurrentMode == Mode.Sentence ? Mode.Word : Mode.Sentence;
     }
 
-    private bool IsWord(Token token)
-    {
-        return Regex.IsMatch(token.Text, @"^[A-Za-z-'’]+$");
-    }
+    private static bool IsWord(Token token) => Regex.IsMatch(token.Text, @"^[A-Za-z-'’]+$");
 
     private void ProcessText()
     {
-        SelectedWord = null;
-        SelectedSentences.Clear();
-        Sentences.Clear();
-        
-        if (String.IsNullOrWhiteSpace(RawTextAreaContent))
+        try
         {
-            return;
-        }
-
-        java.io.InputStream sentenceModelIn = new java.io.FileInputStream("opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin");
-        java.io.InputStream tokensModelIn = new java.io.FileInputStream("opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin");
-        SentenceModel sentenceModel = new(sentenceModelIn);
-        TokenizerModel tokenizerModel = new(tokensModelIn);
-        SentenceDetectorME sentenceDetector = new(sentenceModel);
-        Tokenizer tokenizer = new TokenizerME(tokenizerModel);
+            SelectedWord = null;
+            SelectedSentences.Clear();
+            Sentences.Clear();
         
-        string[] sentences = sentenceDetector.sentDetect(RawTextAreaContent);
-        foreach (string sentence in sentences)
-        {
-            string[]? tokens = tokenizer.tokenize(sentence);
-            Sentence sentenceObj = new() { Id = Guid.NewGuid(), Tokens = new List<Token>() };
-            foreach (string token in tokens)
+            if (String.IsNullOrWhiteSpace(RawTextAreaContent))
             {
-                sentenceObj.Tokens.Add(new Token { Id = Guid.NewGuid(), SentenceId = sentenceObj.Id, Text = token });
+                return;
             }
+
+            java.io.InputStream sentenceModelIn = new java.io.FileInputStream("opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin");
+            java.io.InputStream tokensModelIn = new java.io.FileInputStream("opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin");
+            SentenceModel sentenceModel = new(sentenceModelIn);
+            TokenizerModel tokenizerModel = new(tokensModelIn);
+            SentenceDetectorME sentenceDetector = new(sentenceModel);
+            Tokenizer tokenizer = new TokenizerME(tokenizerModel);
+        
+            string[] sentences = sentenceDetector.sentDetect(RawTextAreaContent);
+            foreach (string sentence in sentences)
+            {
+                string[]? tokens = tokenizer.tokenize(sentence);
+                Sentence sentenceObj = new() { Id = Guid.NewGuid(), Tokens = new List<Token>() };
+                foreach (string token in tokens)
+                {
+                    sentenceObj.Tokens.Add(new Token { Id = Guid.NewGuid(), SentenceId = sentenceObj.Id, Text = token });
+                }
             
-            Sentences.Add(sentenceObj);
+                Sentences.Add(sentenceObj);
+            }
+        }
+        catch (Exception e)
+        {
+            Modal.Title = "Error";
+            Modal.TextContent = e.Message;
+            Modal.ModalType = ModalType.Error;
+            ShowModal = true;
         }
     }
 
