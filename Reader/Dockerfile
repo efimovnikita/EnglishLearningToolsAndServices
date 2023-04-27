@@ -5,7 +5,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Reader/Reader.csproj", "Reader/"]
+COPY ["Reader.csproj", "Reader/"]
 RUN dotnet restore "Reader/Reader.csproj"
 COPY . .
 WORKDIR "/src/Reader"
