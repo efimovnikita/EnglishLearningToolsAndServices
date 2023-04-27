@@ -3,6 +3,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddServerSideBlazor().AddHubOptions(options => {
+    options.MaximumReceiveMessageSize = null; // no limit
+});
 builder.WebHost.UseUrls(urls: new[] { "http://*:5000", "https://*:5001" });
 
 WebApplication app = builder.Build();
