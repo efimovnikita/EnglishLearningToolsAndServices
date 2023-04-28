@@ -64,40 +64,26 @@
     <div id="buttons-container" class="flex justify-center items-center mt-2.5 gap-[10px]">
         @if (Sentences.Count == 0)
         {
-            <button type="button" @onclick="ProcessText" class="flex w-[50px] h-[50px] bg-[#6875F5] justify-center items-center rounded-full hover:bg-[#5145CD]">
-                <img src="assets/plus.svg" alt="" width="40" height="40"/>
-            </button>
+            <ButtonComponent 
+                Action="ProcessText"
+                IconName="plus"
+                IsDisabled="false"
+                IsLoading="false"/>
         }
         else
         {
-            string getDefinitionsButtonStyle = "flex w-[50px] h-[50px] justify-center items-center rounded-full";
-            string historyButtonStyle = getDefinitionsButtonStyle;
-            if (IsGetDefinitionButtonDisabled || IsLoading)
-            {
-                getDefinitionsButtonStyle += " cursor-default bg-[#9CA3AF]";
-            }
-            else
-            {
-                getDefinitionsButtonStyle += " bg-[#6875F5] hover:bg-[#5145CD]";
-            }
-
-            if (History.Count > 0)
-            {
-                historyButtonStyle += " bg-[#6875F5] hover:bg-[#5145CD]";
-
-            }
-            else
-            {
-                historyButtonStyle += " cursor-default bg-[#9CA3AF]";
-            }
+            <ButtonComponent 
+                Action="() => ShowHistory = true"
+                IconName="history"
+                IsDisabled="@(History.Count == 0)"
+                IsLoading="false"/>
             
-            <button type="button" class="@historyButtonStyle" @onclick="() => ShowHistory = true">
-                <img src="assets/history.svg" alt="" width="40" height="40"/>
-            </button>
-            <button type="button" @onclick="() => ShowSettings = true" class="flex w-[50px] h-[50px] bg-[#6875F5] justify-center items-center rounded-full hover:bg-[#5145CD]">
-                <img src="assets/settings.svg" alt="" width="40" height="40"/>
-            </button>
-            
+            <ButtonComponent 
+                Action="() => ShowSettings = true"
+                IconName="settings"
+                IsDisabled="false"
+                IsLoading="false"/>
+
             string style = "flex items-center justify-start w-[50px] h-[26px] bg-[#6875F5] hover:bg-[#5145CD] rounded-full px-[3px]";
             if (CurrentMode == Mode.Sentence)
             {
@@ -116,16 +102,6 @@
                 IconName="question" 
                 IsDisabled="IsGetDefinitionButtonDisabled" 
                 IsLoading="IsLoading" />
-            @*<button type="button" class="@getDefinitionsButtonStyle" @onclick="GetDefinitionOrParaphrase">
-                @if (IsLoading == false)
-                {
-                    <img src="assets/question.svg" alt="" width="40" height="40"/>
-                }
-                else
-                {
-                    <img src="assets/spinner.svg" class="animate-spin" alt="" width="40" height="40"/>
-                }
-            </button>*@
         }
     </div>
 </main>
