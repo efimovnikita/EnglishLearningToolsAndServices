@@ -141,7 +141,7 @@
 }
 
 @code {
-    private string? RawTextAreaContent { get; set; }
+    private string RawTextAreaContent { get; set; } = "";
     private List<Sentence> Sentences { get; set; } = new();
     private Mode CurrentMode { get; set; } = Mode.Word;
     private List<Sentence> SelectedSentences { get; set; } = new();
@@ -177,6 +177,13 @@
     
     private Modal Modal { get; set; } = new();
 
+    protected override async Task OnInitializedAsync()
+    {
+        // Get data from local storage
+        string data = await LocalStorage.GetItemAsync(LocalStorageInputName);
+        RawTextAreaContent = data;
+    }
+
     private List<Token> History
     {
         get
@@ -207,14 +214,14 @@
             SelectedWord = null;
             SelectedSentences.Clear();
             Sentences.Clear();
+            
+            // Add to local storage
+            await LocalStorage.SetItemAsync(LocalStorageInputName, RawTextAreaContent);
         
             if (String.IsNullOrWhiteSpace(RawTextAreaContent))
             {
                 return;
             }
-            
-            // Add to local storage
-            await LocalStorage.SetItemAsync(LocalStorageInputName, RawTextAreaContent);
 
             java.io.InputStream sentenceModelIn = new java.io.FileInputStream("opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin");
             java.io.InputStream tokensModelIn = new java.io.FileInputStream("opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin");
