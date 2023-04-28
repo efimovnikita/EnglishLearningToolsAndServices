@@ -1,0 +1,26 @@
+{
+    "name": "Explain it",
+    "short_name": "Explain it",
+    "description": "Read foreign text with comfort",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#B4C6FC",
+    "theme_color": "#B4C6FC",
+    "share_target": {
+        "action": "/share",
+        "method": "GET",
+        "enctype": "application/x-www-form-urlencoded",
+        "params": {
+            "title": "title",
+            "text": "text",
+            "url": "url"
+        }
+    },
+    "icons": [
+        {
+            "src": "icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ]
+}

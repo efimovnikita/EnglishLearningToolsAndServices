@@ -1,6 +1,11 @@
 ﻿@page "/"
 @page "/key/{openAiKey}"
+@page "/share"
+
 @inject ILocalStorageService LocalStorage
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Primitives
+@inject NavigationManager NavigationManager
 
 <PageTitle>Reader</PageTitle>
 
@@ -127,8 +132,8 @@
     private Mode CurrentMode { get; set; } = Mode.Word;
     private List<Sentence> SelectedSentences { get; set; } = new();
     private Token? SelectedWord { get; set; }
-    [Parameter]
-    public string? OpenAiKey { get; set; }
+    public string SharedText { get; set; } = "";
+    [Parameter] public string? OpenAiKey { get; set; }
     private bool IsGetDefinitionButtonDisabled
     {
         get {
@@ -168,8 +173,12 @@
         // Get data from local storage
         string inputData = await LocalStorage.GetItemAsync(LocalStorageInputName);
         string key = await LocalStorage.GetItemAsync(LocalStorageKeyName);
+        
+        Uri uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        Dictionary<string, StringValues> query = QueryHelpers.ParseQuery(uri.Query);
 
-        RawTextAreaContent = inputData;
+        SharedText = query.TryGetValue("text", out StringValues text) ? text : "";
+        RawTextAreaContent = string.IsNullOrWhiteSpace(SharedText) == false ? SharedText : inputData;
         OpenAiKey = key;
     }
 
