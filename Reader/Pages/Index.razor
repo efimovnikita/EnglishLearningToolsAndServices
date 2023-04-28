@@ -118,7 +118,7 @@
 
 @if (ShowSettings)
 {
-    <ModalSettingsWindow Title="Settings" OpenAiKeyChanged="s => OpenAiKey = s" Content="@OpenAiKey" ModalType="ModalType.Regular" CloseModal="() => ShowSettings = false" />
+    <ModalSettingsWindow Title="Settings" OpenAiKeyChanged="SetOpenAiKey" Content="@OpenAiKey" ModalType="ModalType.Regular" CloseModal="() => ShowSettings = false" />
 }
 
 @code {
@@ -160,9 +160,17 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (OpenAiKey != default)
+        {
+            await SetOpenAiKey(OpenAiKey);
+        }
+        
         // Get data from local storage
-        string data = await LocalStorage.GetItemAsync(LocalStorageInputName);
-        RawTextAreaContent = data;
+        string inputData = await LocalStorage.GetItemAsync(LocalStorageInputName);
+        string key = await LocalStorage.GetItemAsync(LocalStorageKeyName);
+
+        RawTextAreaContent = inputData;
+        OpenAiKey = key;
     }
 
     private List<Token> History
@@ -377,4 +385,11 @@
     }
 
     private const string LocalStorageInputName = "input";
+    private const string LocalStorageKeyName = "apikey";
+
+    private async Task SetOpenAiKey(string s)
+    {
+        await LocalStorage.SetItemAsync(LocalStorageKeyName, s);
+        OpenAiKey = s;
+    }
 }
