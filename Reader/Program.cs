@@ -1,3 +1,5 @@
+using Reader.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +8,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddServerSideBlazor().AddHubOptions(options => {
     options.MaximumReceiveMessageSize = null; // no limit
 });
+builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 builder.WebHost.UseUrls(urls: new[] { "http://*:5000", "https://*:5001" });
 
 WebApplication app = builder.Build();

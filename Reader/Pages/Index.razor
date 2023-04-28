@@ -1,5 +1,6 @@
 ﻿@page "/"
 @page "/key/{openAiKey}"
+@inject ILocalStorageService LocalStorage
 
 <PageTitle>Reader</PageTitle>
 
@@ -199,7 +200,7 @@
 
     private static bool IsWord(Token token) => Regex.IsMatch(token.Text, @"^[A-Za-z-'’]+$");
 
-    private void ProcessText()
+    private async Task ProcessText()
     {
         try
         {
@@ -211,6 +212,9 @@
             {
                 return;
             }
+            
+            // Add to local storage
+            await LocalStorage.SetItemAsync(LocalStorageInputName, RawTextAreaContent);
 
             java.io.InputStream sentenceModelIn = new java.io.FileInputStream("opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin");
             java.io.InputStream tokensModelIn = new java.io.FileInputStream("opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin");
@@ -374,4 +378,6 @@
             IsLoading = false;
         }
     }
+
+    private const string LocalStorageInputName = "input";
 }
