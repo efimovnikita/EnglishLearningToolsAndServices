@@ -72,7 +72,7 @@
         {
             string getDefinitionsButtonStyle = "flex w-[50px] h-[50px] justify-center items-center rounded-full";
             string historyButtonStyle = getDefinitionsButtonStyle;
-            if (IsButtonDisabled || IsLoading)
+            if (IsGetDefinitionButtonDisabled || IsLoading)
             {
                 getDefinitionsButtonStyle += " cursor-default bg-[#9CA3AF]";
             }
@@ -111,7 +111,12 @@
                 <p class="text-[#5850EC]">S</p>
             </button>
             
-            <button type="button" class="@getDefinitionsButtonStyle" @onclick="GetDefinitionOrParaphrase">
+            <ButtonComponent 
+                Action="GetDefinitionOrParaphrase" 
+                IconName="question" 
+                IsDisabled="IsGetDefinitionButtonDisabled" 
+                IsLoading="IsLoading" />
+            @*<button type="button" class="@getDefinitionsButtonStyle" @onclick="GetDefinitionOrParaphrase">
                 @if (IsLoading == false)
                 {
                     <img src="assets/question.svg" alt="" width="40" height="40"/>
@@ -120,7 +125,7 @@
                 {
                     <img src="assets/spinner.svg" class="animate-spin" alt="" width="40" height="40"/>
                 }
-            </button>
+            </button>*@
         }
     </div>
 </main>
@@ -148,7 +153,7 @@
     private Token? SelectedWord { get; set; }
     [Parameter]
     public string? OpenAiKey { get; set; }
-    private bool IsButtonDisabled
+    private bool IsGetDefinitionButtonDisabled
     {
         get {
             if (Sentences.Count == 0)
@@ -156,7 +161,7 @@
                 return true;
             }
 
-            if (String.IsNullOrWhiteSpace(OpenAiKey))
+            if (IsLoading)
             {
                 return true;
             }
@@ -289,6 +294,15 @@
         IsLoading = true;
         try
         {
+            if (string.IsNullOrWhiteSpace(OpenAiKey))
+            {
+                Modal.Title = "Warning";
+                Modal.TextContent = "You must provide OpenAI API key (https://platform.openai.com/account/api-keys). Open settings and add the key.";
+                Modal.ModalType = ModalType.Warning;
+                ShowModal = true;
+                
+                return;
+            }
             OpenAIAPI api = new(OpenAiKey);
             Conversation? chat = api.Chat.CreateConversation();
             if (CurrentMode == Mode.Word && SelectedWord != null)

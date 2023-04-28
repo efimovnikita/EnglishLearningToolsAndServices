@@ -1,0 +1,28 @@
+@{
+    string style;
+    if (IsDisabled || IsLoading)
+    {
+        style = " bg-[#9CA3AF] cursor-default";
+    }
+    else
+    {
+        style = " bg-[#6875F5] hover:bg-[#5145CD]";
+    }
+}
+<button type="button" @onclick="Action" class="@($"flex w-[50px] h-[50px] justify-center items-center rounded-full{style}")" disabled="@IsDisabled">
+    @if (IsLoading)
+    {
+        <img src="assets/spinner.svg" class="animate-spin" alt="" width="40" height="40"/>
+    }
+    else
+    {
+        <img src="@($"assets/{IconName}.svg")" alt="" width="40" height="40"/>
+    }
+</button>
+
+@code {
+    [Parameter] public EventCallback Action { get; set; }
+    [Parameter] public string IconName { get; set; } = "plus";
+    [Parameter] public bool IsDisabled { get; set; }
+    [Parameter] public bool IsLoading { get; set; }
+}
