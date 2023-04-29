@@ -5,6 +5,9 @@
 @inject ILocalStorageService LocalStorage
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Primitives
+@using VersOne.Epub
+@using System.Text
+@using HtmlAgilityPack
 @inject NavigationManager NavigationManager
 
 <PageTitle>Reader</PageTitle>
@@ -69,11 +72,15 @@
     <div id="buttons-container" class="flex justify-center items-center mt-2.5 gap-[10px]">
         @if (Sentences.Count == 0)
         {
+            <div class="file-input-zone">
+                <InputFile OnChange="HandleFileSelected" accept=".pdf,.epub,application/pdf,application/epub+zip" />
+            </div>
+
             <ButtonComponent 
                 Action="ProcessText"
                 IconName="plus"
                 IsDisabled="false"
-                IsLoading="false"/>
+                IsLoading="@IsLoading"/>
         }
         else
         {
@@ -132,7 +139,7 @@
     private Mode CurrentMode { get; set; } = Mode.Word;
     private List<Sentence> SelectedSentences { get; set; } = new();
     private Token? SelectedWord { get; set; }
-    public string SharedText { get; set; } = "";
+    private string SharedText { get; set; } = "";
     [Parameter] public string? OpenAiKey { get; set; }
     private bool IsGetDefinitionButtonDisabled
     {
@@ -181,6 +188,49 @@
         RawTextAreaContent = string.IsNullOrWhiteSpace(SharedText) == false ? SharedText : inputData;
         OpenAiKey = key;
     }
+    
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        IBrowserFile file = e.File;
+        if (Path.GetExtension(file.Name).Contains("epub"))
+        {
+            try
+            {
+                IsLoading = true;
+
+                using MemoryStream memoryStream = new();
+                await file.OpenReadStream(30000000).CopyToAsync(memoryStream);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                EpubBook book = await EpubReader.ReadBookAsync(memoryStream);
+                RawTextAreaContent = "";
+                foreach (EpubTextContentFile textContentFile in book.ReadingOrder)
+                {
+                    HtmlDocument htmlDocument = new();
+                    htmlDocument.LoadHtml(textContentFile.Content);
+                    StringBuilder sb = new();
+                    foreach (HtmlNode node in htmlDocument.DocumentNode.SelectNodes("//text()"))
+                    {
+                        sb.AppendLine(node.InnerText.Trim());
+                    }
+                    string contentText = sb.ToString();
+                    RawTextAreaContent += contentText;
+                }
+                IsLoading = false;
+            }
+            catch (Exception ex)
+            {
+                Modal.Title = "Error";
+                Modal.TextContent = ex.Message;
+                Modal.ModalType = ModalType.Error;
+                ShowModal = true;
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+    }
 
     private List<Token> History
     {
@@ -209,13 +259,15 @@
     {
         try
         {
+            IsLoading = true;
+
             SelectedWord = null;
             SelectedSentences.Clear();
             Sentences.Clear();
-            
+
             // Add to local storage
             await LocalStorage.SetItemAsync(LocalStorageInputName, RawTextAreaContent);
-        
+
             if (String.IsNullOrWhiteSpace(RawTextAreaContent))
             {
                 return;
@@ -227,7 +279,7 @@
             TokenizerModel tokenizerModel = new(tokensModelIn);
             SentenceDetectorME sentenceDetector = new(sentenceModel);
             Tokenizer tokenizer = new TokenizerME(tokenizerModel);
-        
+
             string[] sentences = sentenceDetector.sentDetect(RawTextAreaContent);
             foreach (string sentence in sentences)
             {
@@ -237,9 +289,10 @@
                 {
                     sentenceObj.Tokens.Add(new Token { Id = Guid.NewGuid(), SentenceId = sentenceObj.Id, Text = token });
                 }
-            
+
                 Sentences.Add(sentenceObj);
             }
+            IsLoading = false;
         }
         catch (Exception e)
         {
@@ -247,6 +300,10 @@
             Modal.TextContent = e.Message;
             Modal.ModalType = ModalType.Error;
             ShowModal = true;
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 

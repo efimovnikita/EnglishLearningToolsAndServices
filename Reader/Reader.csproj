@@ -8,9 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EpubSharp" Version="0.4.2" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
     <PackageReference Include="OpenAI" Version="1.7.2" />
     <PackageReference Include="OpenNLP.NET" Version="1.9.4.1" />
     <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
+    <PackageReference Include="VersOne.Epub" Version="3.2.0" />
   </ItemGroup>
 
   <ItemGroup>
