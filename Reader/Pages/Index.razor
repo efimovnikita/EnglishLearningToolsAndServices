@@ -41,7 +41,7 @@
                                 {
                                     style = "rounded-[5px] bg-[#FCE96A] cursor-pointer";
                                 }
-                                <span class="@style" @onclick="() => AddWord(token)">@token.Text</span>
+                                <span class="@($"{style} select-none")" @onclick="() => AddWord(token)">@token.Text</span>
                             }
                             else
                             {
