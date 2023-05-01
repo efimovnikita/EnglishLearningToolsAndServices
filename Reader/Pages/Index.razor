@@ -20,14 +20,14 @@
     }
 }
 <main class="@mainStyle">
-    @if (Sentences.Count == 0)
+    @if (CurrentPage == null)
     {
         <textarea @bind="RawTextAreaContent" class="resize-none	scrollbar-thin scrollbar-thumb-[#B4C6FC] scrollbar-track-[#E5EDFF] bg-[#F0F5FF] w-full h-full rounded-[10px] border-dashed border-[1px] border-[#B4C6FC] p-2.5 text-[#374151] text-[16px]"></textarea>
     }
     else
     {
         <div id="content-container" class="scrollbar-thin scrollbar-thumb-[#B4C6FC] scrollbar-track-[#E5EDFF] flex flex-col gap-[20px] w-full h-full px-2.5 pt-2.5 text-[#374151] text-[18px] leading-6 overflow-auto">
-            @foreach (Sentence sentence in Sentences)
+            @foreach (Sentence sentence in CurrentPage.Sentences)
             {
                 if (CurrentMode == Mode.Word)
                 {
@@ -69,8 +69,31 @@
             }
         </div>
     }
+    @if (Pages.Count > 1 && CurrentPage != null)
+    {
+        <div id="navigation" class="flex justify-center gap-[20px] text-[#374151] text-[18px] pt-1">
+            <button
+                type="button"
+                disabled="@(Pages.FirstOrDefault(page => page.PageNumber == CurrentPage.PageNumber - 1) == null)"
+                @onclick="() => CurrentPage = Pages.FirstOrDefault(page => page.PageNumber.Equals(CurrentPage.PageNumber - 1))">
+                @("<-")
+            </button>
+            <div id="pages-counter" class="flex">
+                <input class="w-[60px] bg-transparent" type="number" value="@CurrentPage.PageNumber" max="@Pages.Count"
+                       @onchange="OnChangePageNumber">
+                @("/")
+                @Pages.Count
+            </div>
+            <button
+                type="button"
+                disabled="@(Pages.FirstOrDefault(page => page.PageNumber == CurrentPage.PageNumber + 1) == null)"
+                @onclick="() => CurrentPage = Pages.FirstOrDefault(page => page.PageNumber.Equals(CurrentPage.PageNumber + 1))">
+                @("->")
+            </button>
+        </div>
+    }
     <div id="buttons-container" class="flex justify-center items-center mt-2.5 gap-[10px]">
-        @if (Sentences.Count == 0)
+        @if (CurrentPage == null)
         {
             <div class="file-input-zone">
                 <InputFile OnChange="HandleFileSelected" accept=".pdf,.epub,application/pdf,application/epub+zip" />
@@ -135,7 +158,9 @@
 
 @code {
     private string RawTextAreaContent { get; set; } = "";
-    private List<Sentence> Sentences { get; set; } = new();
+    // private List<Sentence> Sentences { get; set; } = new();
+    private List<Page> Pages { get; set; } = new();
+    private Page? CurrentPage { get; set; }
     private Mode CurrentMode { get; set; } = Mode.Word;
     private List<Sentence> SelectedSentences { get; set; } = new();
     private Token? SelectedWord { get; set; }
@@ -144,7 +169,7 @@
     private bool IsGetDefinitionButtonDisabled
     {
         get {
-            if (Sentences.Count == 0)
+            if (CurrentPage == null)
             {
                 return true;
             }
@@ -237,9 +262,12 @@
         get
         {
             var result = new List<Token>();
-            foreach (Sentence sentence in Sentences)
+            foreach (Page page in Pages)
             {
-                result.AddRange(sentence.Tokens.Where(token => !String.IsNullOrWhiteSpace(token.Definition)));
+                foreach (Sentence sentence in page.Sentences)
+                {
+                    result.AddRange(sentence.Tokens.Where(token => !String.IsNullOrWhiteSpace(token.Definition)));
+                }
             }
 
             return result;
@@ -263,7 +291,9 @@
 
             SelectedWord = null;
             SelectedSentences.Clear();
-            Sentences.Clear();
+            // Sentences.Clear();
+            CurrentPage = null;
+            Pages.Clear();
 
             // Add to local storage
             await LocalStorage.SetItemAsync(LocalStorageInputName, RawTextAreaContent);
@@ -281,6 +311,8 @@
             Tokenizer tokenizer = new TokenizerME(tokenizerModel);
 
             string[] sentences = sentenceDetector.sentDetect(RawTextAreaContent);
+            
+            List<Sentence> sentencesList = new();
             foreach (string sentence in sentences)
             {
                 string[]? tokens = tokenizer.tokenize(sentence);
@@ -290,8 +322,17 @@
                     sentenceObj.Tokens.Add(new Token { Id = Guid.NewGuid(), SentenceId = sentenceObj.Id, Text = token });
                 }
 
-                Sentences.Add(sentenceObj);
+                sentencesList.Add(sentenceObj);
             }
+            
+            List<List<Sentence>> chunks = SplitIntoChunks(sentencesList, 30);
+            for (var i = 0; i < chunks.Count; i++)
+            {
+                Pages.Add(new Page {Sentences = chunks[i], PageNumber = i + 1});
+            }
+
+            CurrentPage = Pages.First();
+            
             IsLoading = false;
         }
         catch (Exception e)
@@ -305,6 +346,20 @@
         {
             IsLoading = false;
         }
+    }
+
+    private static List<List<T>> SplitIntoChunks<T>(List<T> list, int chunkSize)
+    {
+        List<List<T>> chunks = new List<List<T>>();
+        int count = list.Count;
+
+        for (int i = 0; i < count; i += chunkSize)
+        {
+            List<T> chunk = list.Skip(i).Take(chunkSize).ToList();
+            chunks.Add(chunk);
+        }
+
+        return chunks;
     }
 
     private void AddWord(Token token)
@@ -344,6 +399,11 @@
         IsLoading = true;
         try
         {
+            if (CurrentPage == null)
+            {
+                return;
+            }
+            
             if (string.IsNullOrWhiteSpace(OpenAiKey))
             {
                 Modal.Title = "Warning";
@@ -366,23 +426,23 @@
                     return;
                 }
 
-                Sentence? sentence = Sentences.FirstOrDefault(s => s.Id.Equals(SelectedWord.SentenceId));
+                Sentence? sentence = CurrentPage.Sentences.FirstOrDefault(s => s.Id.Equals(SelectedWord.SentenceId));
                 if (sentence == null)
                 {
                     return;
                 }
-                int i = Sentences.IndexOf(sentence);
-                int sentencesCount = Sentences.Count;
+                int i = CurrentPage.Sentences.IndexOf(sentence);
+                int sentencesCount = CurrentPage.Sentences.Count;
                 Sentence? prevSentence = null;
                 if (i - 1 > 0)
                 {
-                    prevSentence = Sentences[i - 1];
+                    prevSentence = CurrentPage.Sentences[i - 1];
                 }
 
                 Sentence? nextSentence = null;
                 if (i + 1 < sentencesCount)
                 {
-                    nextSentence = Sentences[i + 1];
+                    nextSentence = CurrentPage.Sentences[i + 1];
                 }
 
                 string stringRepresentationOfSentence = String.Join(' ', sentence.Tokens.Select(t => t.Text).ToArray());
@@ -458,4 +518,22 @@
         await LocalStorage.SetItemAsync(LocalStorageKeyName, s);
         OpenAiKey = s;
     }
+
+    private void OnChangePageNumber(ChangeEventArgs obj)
+    {
+        if (obj.Value == null)
+        {
+            return;
+        }
+
+        if (Int32.TryParse(obj.Value.ToString(), out int result))
+        {
+            Page? page = Pages.FirstOrDefault(page => page.PageNumber.Equals(result));
+            if (page != null)
+            {
+                CurrentPage = page;
+            }
+        }
+    }
+
 }

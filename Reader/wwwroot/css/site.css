@@ -604,6 +604,10 @@ video {
   width: 50px;
 }
 
+.w-\[60px\] {
+  width: 60px;
+}
+
 .w-full {
   width: 100%;
 }
@@ -827,6 +831,10 @@ video {
 .px-\[3px\] {
   padding-left: 3px;
   padding-right: 3px;
+}
+
+.pt-1 {
+  padding-top: 0.25rem;
 }
 
 .pt-2 {
