@@ -7,6 +7,9 @@
 @using Microsoft.Extensions.Primitives
 @using VersOne.Epub
 @using System.Text
+@using Fb2.Document
+@using Fb2.Document.Models
+@using Fb2.Document.Models.Base
 @using HtmlAgilityPack
 @using iText.Kernel.Pdf
 @using iText.Kernel.Pdf.Canvas.Parser
@@ -99,7 +102,7 @@
         @if (CurrentPage == null)
         {
             <div class="file-input-zone">
-                <InputFile OnChange="HandleFileSelected" accept=".pdf,.epub,.txt,application/pdf,application/epub+zip,text/plain" />
+                <InputFile OnChange="HandleFileSelected" accept=".pdf,.epub,.txt,.fb2,application/pdf,application/epub+zip,text/plain" />
             </div>
 
             <ButtonComponent 
@@ -318,6 +321,52 @@
 
                 RawTextAreaContent = content;
                 
+                IsLoading = false;
+            }
+            catch (Exception ex)
+            {
+                Modal.Title = "Error";
+                Modal.TextContent = ex.Message;
+                Modal.ModalType = ModalType.Error;
+                ShowModal = true;
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+        
+        if (Path.GetExtension(file.Name).Contains("fb2"))
+        {
+            try
+            {
+                IsLoading = true;
+
+                using MemoryStream memoryStream = new();
+                await file.OpenReadStream(30000000).CopyToAsync(memoryStream);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                RawTextAreaContent = "";
+                
+                Fb2Document fb2Document = new Fb2Document();
+                
+                fb2Document.Load(memoryStream);
+
+                StringBuilder sb = new StringBuilder();
+                foreach (BookBody body in fb2Document.Bodies)
+                {
+                    foreach (Fb2Node node in body.Content)
+                    {
+                        string? s = node.ToString();
+                        if (String.IsNullOrWhiteSpace(s) == false)
+                        {
+                            sb.AppendLine(s);
+                        }
+                    }
+                }
+
+                RawTextAreaContent = sb.ToString();
+
                 IsLoading = false;
             }
             catch (Exception ex)
