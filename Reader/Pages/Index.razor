@@ -420,7 +420,18 @@
             // Sentences.Clear();
             CurrentPage = null;
             Pages.Clear();
-
+            
+            // process URL's
+            string? url = ExtractUrl(RawTextAreaContent);
+            if (String.IsNullOrEmpty(url) == false)
+            {
+                string textContentFromUrlAsync = await ExtractTextContentFromUrlAsync(url);
+                if (String.IsNullOrEmpty(textContentFromUrlAsync) == false)
+                {
+                    RawTextAreaContent = textContentFromUrlAsync;
+                }
+            }
+            
             // Add to local storage
             await LocalStorage.SetItemAsync(LocalStorageInputName, RawTextAreaContent);
 
@@ -472,6 +483,83 @@
         {
             IsLoading = false;
         }
+    }
+    
+    public static async Task<string> ExtractTextContentFromUrlAsync(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            throw new ArgumentException("URL cannot be null or empty.", nameof(url));
+        }
+
+        using var httpClient = new HttpClient();
+        var response = await httpClient.GetAsync(url);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"Request to {url} failed with status code {response.StatusCode}.");
+        }
+
+        var htmlContent = await response.Content.ReadAsStringAsync();
+        var htmlDocument = new HtmlDocument();
+        htmlDocument.LoadHtml(htmlContent);
+
+        var bodyNode = htmlDocument.DocumentNode.SelectSingleNode("//body");
+        if (bodyNode == null)
+        {
+            throw new InvalidOperationException("The web page doesn't have a body tag.");
+        }
+
+        return ExtractTextFromNode(bodyNode);
+    }
+
+    private static string ExtractTextFromNode(HtmlNode? node)
+    {
+        if (node == null)
+        {
+            return string.Empty;
+        }
+
+        if (node.NodeType == HtmlNodeType.Text)
+        {
+            return node.InnerText.Trim();
+        }
+
+        // Skip script nodes and style nodes
+        if (node.Name.Equals("script", StringComparison.OrdinalIgnoreCase) ||
+            node.Name.Equals("style", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.Empty;
+        }
+
+        // Remove inline CSS
+        if (node.HasAttributes && node.Attributes.Contains("style"))
+        {
+            node.Attributes.Remove("style");
+        }
+
+        var extractedText = new StringBuilder();
+
+        foreach (var childNode in node.ChildNodes)
+        {
+            extractedText.AppendLine(ExtractTextFromNode(childNode));
+        }
+
+        return extractedText.ToString().Trim();
+    }
+    
+    public static string? ExtractUrl(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return null;
+        }
+
+        string pattern = @"^(https?|ftp|file):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]";
+        Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
+        Match match = regex.Match(input);
+
+        return match.Success ? match.Value : null;
     }
 
     private static List<List<T>> SplitIntoChunks<T>(List<T> list, int chunkSize)
