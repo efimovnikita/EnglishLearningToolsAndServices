@@ -71,7 +71,7 @@
     
     private async Task UpdateOpenAiKey(ChangeEventArgs e)
     {
-        Content = e.Value.ToString();
+        Content = e.Value!.ToString()!;
         await OpenAiKeyChanged.InvokeAsync(Content);
     }
 
