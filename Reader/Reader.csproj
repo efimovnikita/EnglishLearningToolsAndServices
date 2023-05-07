@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EpubSharp" Version="0.4.2" />
     <PackageReference Include="Fb2.Document" Version="2.2.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
     <PackageReference Include="itext7" Version="7.2.5" />
