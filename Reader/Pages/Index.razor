@@ -490,25 +490,136 @@
             throw new ArgumentException("URL cannot be null or empty.", nameof(url));
         }
 
-        using var httpClient = new HttpClient();
-        var response = await httpClient.GetAsync(url);
+        using HttpClient httpClient = new();
+        HttpResponseMessage response = await httpClient.GetAsync(url);
 
         if (!response.IsSuccessStatusCode)
         {
             throw new HttpRequestException($"Request to {url} failed with status code {response.StatusCode}.");
         }
 
-        var htmlContent = await response.Content.ReadAsStringAsync();
-        var htmlDocument = new HtmlDocument();
+        string htmlContent = await response.Content.ReadAsStringAsync();
+        HtmlDocument htmlDocument = new();
         htmlDocument.LoadHtml(htmlContent);
 
-        var bodyNode = htmlDocument.DocumentNode.SelectSingleNode("//body");
+        HtmlNode? bodyNode = htmlDocument.DocumentNode.SelectSingleNode("//body");
         if (bodyNode == null)
         {
             throw new InvalidOperationException("The web page doesn't have a body tag.");
         }
 
+        if (IsUrlFromTheGuardian(url))
+        {
+            return ExtractTextFromGuardian(bodyNode);
+        }
+        
+        if (IsUrlFromBbc(url))
+        {
+            return ExtractTextFromBbc(bodyNode);
+        }
+        
+        if (IsUrlFromWashingtonPost(url))
+        {
+            return ExtractTextFromWashingtonPost(bodyNode);
+        }
+
         return ExtractTextFromNode(bodyNode);
+    }
+
+    private static bool IsUrlFromTheGuardian(string url)
+    {
+        Uri uri = new(url);
+        return uri.Host.Contains("theguardian.com");
+    }
+    
+    private static bool IsUrlFromBbc(string url)
+    {
+        Uri uri = new(url);
+        return uri.Host.Contains("bbc.com");
+    }
+    
+    private static bool IsUrlFromWashingtonPost(string url)
+    {
+        Uri uri = new(url);
+        return uri.Host.Contains("washingtonpost.com");
+    }
+    
+    private static string ExtractTextFromWashingtonPost(HtmlNode node)
+    {
+        StringBuilder extractedText = new();
+
+        HtmlNodeCollection? headlineNodes = node.SelectNodes("//h1[@data-qa='headline']");
+        HtmlNodeCollection? bodyNodes = node.SelectNodes("//div[@data-qa='article-body']");
+
+        if (headlineNodes != null)
+        {
+            foreach (HtmlNode? headlineNode in headlineNodes)
+            {
+                extractedText.AppendLine(ExtractTextFromNode(headlineNode));
+            }
+        }
+
+        if (bodyNodes != null)
+        {
+            foreach (HtmlNode? n in bodyNodes)
+            {
+                extractedText.AppendLine(ExtractTextFromNode(n));
+            }
+        }
+
+        return extractedText.ToString().Trim();
+    }
+
+    private static string ExtractTextFromGuardian(HtmlNode node)
+    {
+        StringBuilder extractedText = new();
+
+        HtmlNodeCollection? headlineNodes = node.SelectNodes("//div[@data-gu-name='headline']");
+        HtmlNodeCollection? standfirstNodes = node.SelectNodes("//div[@data-gu-name='standfirst']");
+        HtmlNodeCollection? bodyNodes = node.SelectNodes("//div[@data-gu-name='body']");
+
+        if (headlineNodes != null)
+        {
+            foreach (HtmlNode? headlineNode in headlineNodes)
+            {
+                extractedText.AppendLine(ExtractTextFromNode(headlineNode));
+            }
+        }
+
+        if (standfirstNodes != null)
+        {
+            foreach (HtmlNode? standfirstNode in standfirstNodes)
+            {
+                extractedText.AppendLine(ExtractTextFromNode(standfirstNode));
+            }
+        }
+        
+        if (bodyNodes != null)
+        {
+            foreach (HtmlNode? n in bodyNodes)
+            {
+                extractedText.AppendLine(ExtractTextFromNode(n));
+            }
+        }
+
+        return extractedText.ToString().Trim();
+    }
+    
+    private static string ExtractTextFromBbc(HtmlNode node)
+    {
+        StringBuilder extractedText = new();
+
+        HtmlNodeCollection? mainNodes = node.SelectNodes("//*[@id='main-content']");
+
+        if (mainNodes != null)
+        {
+            foreach (HtmlNode? htmlNode in mainNodes)
+            {
+                extractedText.AppendLine(ExtractTextFromNode(htmlNode));
+            }
+        }
+
+        return extractedText.ToString().Trim();
     }
 
     private static string ExtractTextFromNode(HtmlNode? node)
