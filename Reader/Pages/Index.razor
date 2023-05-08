@@ -164,7 +164,6 @@
 
 @code {
     private string RawTextAreaContent { get; set; } = "";
-    // private List<Sentence> Sentences { get; set; } = new();
     private List<Page> Pages { get; set; } = new();
     private Page? CurrentPage { get; set; }
     private Mode CurrentMode { get; set; } = Mode.Word;
@@ -417,7 +416,6 @@
 
             SelectedWord = null;
             SelectedSentences.Clear();
-            // Sentences.Clear();
             CurrentPage = null;
             Pages.Clear();
             
@@ -749,5 +747,4 @@
             }
         }
     }
-
 }
