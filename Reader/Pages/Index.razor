@@ -898,7 +898,8 @@
     {
         return nextToken != null && 
                nextToken.Text.Equals(",") == false &&
-               nextToken.Text.Equals(":") == false;
+               nextToken.Text.Equals(":") == false &&
+               nextToken.Text.Equals(";") == false;
     }
 
 }
