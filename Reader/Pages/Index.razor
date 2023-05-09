@@ -55,15 +55,18 @@
                                 @token.Text
                             }
 
-                            Token preLast = sentence.Tokens[^2];
-                            
-                            Token? nextToken = GetNextToken(i, sentence);
-
-                            if (token.Equals(preLast) == false)
+                            if (sentence.Tokens.Count > 1)
                             {
-                                if (IsSpaceNeeded(nextToken))
+                                Token preLast = sentence.Tokens[^2];
+                            
+                                Token? nextToken = GetNextToken(i, sentence);
+
+                                if (token.Equals(preLast) == false)
                                 {
-                                    @(' ')
+                                    if (IsSpaceNeeded(nextToken))
+                                    {
+                                        @(' ')
+                                    }
                                 }
                             }
                         }
@@ -81,16 +84,19 @@
                         {
                             Token token = sentence.Tokens[i];
                             <text>@token.Text</text>
-                                  
-                            Token preLast = sentence.Tokens[^2];
 
-                            Token? nextToken = GetNextToken(i, sentence);
-
-                            if (token.Equals(preLast) == false)
+                            if (sentence.Tokens.Count > 1)
                             {
-                                if (IsSpaceNeeded(nextToken))
+                                Token preLast = sentence.Tokens[^2];
+
+                                Token? nextToken = GetNextToken(i, sentence);
+
+                                if (token.Equals(preLast) == false)
                                 {
-                                    @(' ')
+                                    if (IsSpaceNeeded(nextToken))
+                                    {
+                                        @(' ')
+                                    }
                                 }
                             }
                         }
@@ -295,18 +301,18 @@
                 await file.OpenReadStream(30000000).CopyToAsync(memoryStream);
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
-                var reader = new PdfReader(memoryStream);
-                var pdfDocument = new PdfDocument(reader);
+                PdfReader reader = new(memoryStream);
+                PdfDocument pdfDocument = new(reader);
                 
-                var content = new StringBuilder();
-                var strategy = new SimpleTextExtractionStrategy();
+                StringBuilder content = new();
 
                 RawTextAreaContent = "";
 
-                for (int i = 1; i <= pdfDocument.GetNumberOfPages(); i++)
+                int pages = pdfDocument.GetNumberOfPages();
+                for (int i = 1; i <= pages; i++)
                 {
-                    var page = pdfDocument.GetPage(i);
-                    var text = PdfTextExtractor.GetTextFromPage(page, strategy);
+                    PdfPage? page = pdfDocument.GetPage(i);
+                    string? text = PdfTextExtractor.GetTextFromPage(page, new SimpleTextExtractionStrategy());
                     content.AppendLine(text);
                 }
 
@@ -371,11 +377,11 @@
 
                 RawTextAreaContent = "";
                 
-                Fb2Document fb2Document = new Fb2Document();
+                Fb2Document fb2Document = new();
                 
                 fb2Document.Load(memoryStream);
 
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 foreach (BookBody body in fb2Document.Bodies)
                 {
                     foreach (Fb2Node node in body.Content)
