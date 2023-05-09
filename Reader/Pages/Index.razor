@@ -38,8 +38,9 @@
                 if (CurrentMode == Mode.Word)
                 {
                     <p>
-                        @foreach (Token token in sentence.Tokens)
+                        @for (int i = 0; i < sentence.Tokens.Count; i++)
                         {
+                            Token token = sentence.Tokens[i];
                             if (IsWord(token))
                             {
                                 string style = "bg-transparent rounded-[5px] hover:bg-[#FCE96A] cursor-pointer";
@@ -54,7 +55,17 @@
                                 @token.Text
                             }
 
-                            @(' ')
+                            Token preLast = sentence.Tokens[^2];
+                            
+                            Token? nextToken = GetNextToken(i, sentence);
+
+                            if (token.Equals(preLast) == false)
+                            {
+                                if (IsSpaceNeeded(nextToken))
+                                {
+                                    @(' ')
+                                }
+                            }
                         }
                     </p>
                 }
@@ -66,9 +77,22 @@
                         style = "rounded-[5px] bg-[#FCE96A] cursor-pointer";
                     }
                     <p class="@style" @onclick="() => AddSentence(sentence)">
-                        @foreach (Token token in sentence.Tokens)
+                        @for (int i = 0; i < sentence.Tokens.Count; i++)
                         {
-                            <text>@token.Text@(' ')</text>
+                            Token token = sentence.Tokens[i];
+                            <text>@token.Text</text>
+                                  
+                            Token preLast = sentence.Tokens[^2];
+
+                            Token? nextToken = GetNextToken(i, sentence);
+
+                            if (token.Equals(preLast) == false)
+                            {
+                                if (IsSpaceNeeded(nextToken))
+                                {
+                                    @(' ')
+                                }
+                            }
                         }
                     </p>
                 }
@@ -858,4 +882,23 @@
             }
         }
     }
+
+    private static Token? GetNextToken(int i, Sentence sentence)
+    {
+        Token? nextToken = null;
+        if (i < sentence.Tokens.Count - 1)
+        {
+            nextToken = sentence.Tokens[i + 1];
+        }
+
+        return nextToken;
+    }
+
+    private static bool IsSpaceNeeded(Token? nextToken)
+    {
+        return nextToken != null && 
+               nextToken.Text.Equals(",") == false &&
+               nextToken.Text.Equals(":") == false;
+    }
+
 }
