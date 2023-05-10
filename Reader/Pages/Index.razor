@@ -11,9 +11,12 @@
 @using Fb2.Document.Models
 @using Fb2.Document.Models.Base
 @using HtmlAgilityPack
+@using Humanizer
 @using iText.Kernel.Pdf
 @using iText.Kernel.Pdf.Canvas.Parser
 @using iText.Kernel.Pdf.Canvas.Parser.Listener
+@using YoutubeExplode
+@using YoutubeExplode.Videos.ClosedCaptions
 @inject NavigationManager NavigationManager
 
 <PageTitle>Reader</PageTitle>
@@ -552,6 +555,11 @@
         {
             return ExtractTextFromWashingtonPost(bodyNode);
         }
+        
+        if (IsUrlFromYouTube(url))
+        {
+            return await ExtractTextFromYouTube(url);
+        }
 
         return ExtractTextFromNode(bodyNode);
     }
@@ -566,6 +574,12 @@
     {
         Uri uri = new(url);
         return uri.Host.Contains("bbc.com");
+    }
+    
+    private static bool IsUrlFromYouTube(string url)
+    {
+        Uri uri = new(url);
+        return uri.Host.Contains("youtu.be") || uri.Host.Contains("youtube.com");
     }
     
     private static bool IsUrlFromWashingtonPost(string url)
@@ -598,6 +612,26 @@
         }
 
         return extractedText.ToString().Trim();
+    }
+    
+    private static async Task<string> ExtractTextFromYouTube(string url)
+    {
+        YoutubeClient youtube = new();
+
+        ClosedCaptionManifest trackManifest = await youtube.Videos.ClosedCaptions.GetManifestAsync(url);
+
+        ClosedCaptionTrackInfo trackInfo = trackManifest.GetByLanguage("en");
+        
+        ClosedCaptionTrack track = await youtube.Videos.ClosedCaptions.GetAsync(trackInfo);
+
+        StringBuilder builder = new();
+        foreach (ClosedCaption closedCaption in track.Captions.Where(caption => String.IsNullOrWhiteSpace(caption.Text)==false))
+        {
+            string text = closedCaption.Text;
+            builder.AppendLine(text.Transform(To.SentenceCase) + ".");
+        }
+
+        return builder.ToString();
     }
 
     private static string ExtractTextFromGuardian(HtmlNode node)
