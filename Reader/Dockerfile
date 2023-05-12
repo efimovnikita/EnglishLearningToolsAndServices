@@ -6,5 +6,7 @@ COPY bin/Release/net6.0/publish .
 
 RUN dotnet dev-certs https --clean
 RUN dotnet dev-certs https --verbose
+RUN apt-get update
+RUN apt-get install -y ffmpeg
 
 ENTRYPOINT ["./Reader"]
