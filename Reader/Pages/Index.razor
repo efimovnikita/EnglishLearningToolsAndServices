@@ -136,6 +136,12 @@
         </div>
     }
     <div id="buttons-container" class="flex justify-center items-center mt-2.5 gap-[10px]">
+        <ButtonComponent 
+            Action="() => ShowSettings = true"
+            IconName="settings"
+            IsDisabled="false"
+            IsLoading="false"/>
+        
         @if (CurrentPage == null)
         {
             <div class="file-input-zone">
@@ -154,12 +160,6 @@
                 Action="() => ShowHistory = true"
                 IconName="history"
                 IsDisabled="@(History.Count == 0)"
-                IsLoading="false"/>
-            
-            <ButtonComponent 
-                Action="() => ShowSettings = true"
-                IconName="settings"
-                IsDisabled="false"
                 IsLoading="false"/>
 
             string style = "flex items-center justify-start w-[50px] h-[26px] bg-[#6875F5] hover:bg-[#5145CD] rounded-full px-[3px]";
@@ -562,6 +562,10 @@
         
         if (IsUrlFromYouTube(url))
         {
+            if (String.IsNullOrWhiteSpace(OpenAiKey))
+            {
+                throw new Exception("You must provide OpenAI API key (https://platform.openai.com/account/api-keys). Open settings and add the key.");
+            }
             return await ExtractTextFromYouTube(url);
         }
 
