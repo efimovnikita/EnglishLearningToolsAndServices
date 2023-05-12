@@ -8,14 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.6.1" />
     <PackageReference Include="Fb2.Document" Version="2.2.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
     <PackageReference Include="itext7" Version="7.2.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenAI" Version="1.7.2" />
     <PackageReference Include="OpenNLP.NET" Version="1.9.4.1" />
     <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
     <PackageReference Include="VersOne.Epub" Version="3.2.0" />
-    <PackageReference Include="Humanizer" Version="2.14.1" />
     <PackageReference Include="YoutubeExplode" Version="6.2.14" />
   </ItemGroup>
 
@@ -24,6 +25,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="yt-dlp_linux">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
