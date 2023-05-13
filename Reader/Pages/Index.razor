@@ -2,6 +2,7 @@
 @page "/key/{openAiKey}"
 @page "/share"
 
+@inject IJSRuntime JsRuntime
 @inject ILocalStorageService LocalStorage
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Primitives
@@ -118,7 +119,7 @@
             <button
                 type="button"
                 disabled="@(Pages.FirstOrDefault(page => page.PageNumber == CurrentPage.PageNumber - 1) == null)"
-                @onclick="() => CurrentPage = Pages.FirstOrDefault(page => page.PageNumber.Equals(CurrentPage.PageNumber - 1))">
+                @onclick="GoBack">
                 @("<-")
             </button>
             <div id="pages-counter" class="flex">
@@ -130,7 +131,7 @@
             <button
                 type="button"
                 disabled="@(Pages.FirstOrDefault(page => page.PageNumber == CurrentPage.PageNumber + 1) == null)"
-                @onclick="() => CurrentPage = Pages.FirstOrDefault(page => page.PageNumber.Equals(CurrentPage.PageNumber + 1))">
+                @onclick="GoNext">
                 @("->")
             </button>
         </div>
@@ -865,7 +866,7 @@
                 return;
             }
             
-            if (string.IsNullOrWhiteSpace(OpenAiKey))
+            if (String.IsNullOrWhiteSpace(OpenAiKey))
             {
                 Modal.Title = "Warning";
                 Modal.TextContent = "You must provide OpenAI API key (https://platform.openai.com/account/api-keys). Open settings and add the key.";
@@ -993,6 +994,7 @@
             if (page != null)
             {
                 CurrentPage = page;
+                ResetScroll();
             }
         }
     }
@@ -1016,4 +1018,20 @@
                nextToken.Text.Equals(";") == false;
     }
 
+    private void GoBack()
+    {
+        CurrentPage = Pages.FirstOrDefault(page => page.PageNumber.Equals(CurrentPage!.PageNumber - 1));
+        ResetScroll();
+    }
+
+    private void GoNext()
+    {
+        CurrentPage = Pages.FirstOrDefault(page => page.PageNumber.Equals(CurrentPage!.PageNumber + 1));
+        ResetScroll();
+    }
+
+    async void ResetScroll()
+    {
+        await JsRuntime.InvokeVoidAsync("scrollToTopOfElement", "content-container");
+    }
 }
