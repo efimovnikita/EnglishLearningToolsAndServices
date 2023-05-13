@@ -45,10 +45,10 @@
             {
                 if (CurrentMode == Mode.Word)
                 {
+                    List<Token> tokensWithSpaces = sentence.GetTokensWithSpaces();
                     <p>
-                        @for (int i = 0; i < sentence.Tokens.Count; i++)
+                        @foreach (Token token in tokensWithSpaces)
                         {
-                            Token token = sentence.Tokens[i];
                             if (IsWord(token))
                             {
                                 string style = "bg-transparent rounded-[5px] hover:bg-[#FCE96A] cursor-pointer";
@@ -62,21 +62,6 @@
                             {
                                 @token.Text
                             }
-
-                            if (sentence.Tokens.Count > 1)
-                            {
-                                Token preLast = sentence.Tokens[^2];
-                            
-                                Token? nextToken = GetNextToken(i, sentence);
-
-                                if (token.Equals(preLast) == false)
-                                {
-                                    if (IsSpaceNeeded(nextToken))
-                                    {
-                                        @(' ')
-                                    }
-                                }
-                            }
                         }
                     </p>
                 }
@@ -87,27 +72,9 @@
                     {
                         style = "rounded-[5px] bg-[#FCE96A] cursor-pointer";
                     }
+
                     <p class="@style" @onclick="() => AddSentence(sentence)">
-                        @for (int i = 0; i < sentence.Tokens.Count; i++)
-                        {
-                            Token token = sentence.Tokens[i];
-                            <text>@token.Text</text>
-
-                            if (sentence.Tokens.Count > 1)
-                            {
-                                Token preLast = sentence.Tokens[^2];
-
-                                Token? nextToken = GetNextToken(i, sentence);
-
-                                if (token.Equals(preLast) == false)
-                                {
-                                    if (IsSpaceNeeded(nextToken))
-                                    {
-                                        @(' ')
-                                    }
-                                }
-                            }
-                        }
+                        @sentence.GetJoinedTokensWithSpaces()
                     </p>
                 }
             }
@@ -997,25 +964,6 @@
                 ResetScroll();
             }
         }
-    }
-
-    private static Token? GetNextToken(int i, Sentence sentence)
-    {
-        Token? nextToken = null;
-        if (i < sentence.Tokens.Count - 1)
-        {
-            nextToken = sentence.Tokens[i + 1];
-        }
-
-        return nextToken;
-    }
-
-    private static bool IsSpaceNeeded(Token? nextToken)
-    {
-        return nextToken != null && 
-               nextToken.Text.Equals(",") == false &&
-               nextToken.Text.Equals(":") == false &&
-               nextToken.Text.Equals(";") == false;
     }
 
     private void GoBack()
