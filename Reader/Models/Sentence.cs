@@ -35,8 +35,6 @@ public class Sentence
         return result;
     }
 
-    public string GetJoinedTokensWithSpaces() => String.Join("", GetTokensWithSpaces().Select(token => token.Text));
-
     private static Token? GetNextToken(int i, Sentence sentence)
     {
         Token? nextToken = null;
@@ -55,4 +53,6 @@ public class Sentence
                nextToken.Text.Equals(":") == false &&
                nextToken.Text.Equals(";") == false;
     }
+
+    public override string ToString() => String.Join("", GetTokensWithSpaces().Select(token => token.Text));
 }
