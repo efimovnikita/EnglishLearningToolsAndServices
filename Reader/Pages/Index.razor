@@ -22,6 +22,7 @@
 @using CliWrap.Buffered
 @using Newtonsoft.Json
 @using Newtonsoft.Json.Linq
+@using TiktokenSharp
 @inject NavigationManager NavigationManager
 
 <PageTitle>Reader</PageTitle>
@@ -804,7 +805,7 @@
     
     private void AddSentence(Sentence sentence)
     {
-        var sentencesWithSameId = SelectedSentences.Where(s => s.Id.Equals(sentence.Id)).ToArray();
+        Sentence[] sentencesWithSameId = SelectedSentences.Where(s => s.Id.Equals(sentence.Id)).ToArray();
         if (sentencesWithSameId.Length != 0)
         {
             foreach (Sentence s in sentencesWithSameId)
@@ -814,36 +815,34 @@
             
             return;
         }
-        
-        if (SelectedSentences.Count == 5)
-        {
-            return;
-        }
-        
+
         SelectedSentences.Add(sentence);
     }
 
     private async Task GetDefinitionOrParaphrase()
     {
         IsLoading = true;
+
         try
         {
             if (CurrentPage == null)
             {
                 return;
             }
-            
+
             if (String.IsNullOrWhiteSpace(OpenAiKey))
             {
                 Modal.Title = "Warning";
                 Modal.TextContent = "You must provide OpenAI API key (https://platform.openai.com/account/api-keys). Open settings and add the key.";
                 Modal.ModalType = ModalType.Warning;
                 ShowModal = true;
-                
+
                 return;
             }
+            
             OpenAIAPI api = new(OpenAiKey);
             Conversation? chat = api.Chat.CreateConversation();
+            
             if (CurrentMode == Mode.Word && SelectedWord != null)
             {
                 if (String.IsNullOrWhiteSpace(SelectedWord.Definition) == false)
@@ -855,45 +854,16 @@
                     return;
                 }
 
-                Sentence? sentence = CurrentPage.Sentences.FirstOrDefault(s => s.Id.Equals(SelectedWord.SentenceId));
-                if (sentence == null)
-                {
-                    return;
-                }
-                int i = CurrentPage.Sentences.IndexOf(sentence);
-                int sentencesCount = CurrentPage.Sentences.Count;
-                Sentence? prevSentence = null;
-                if (i - 1 > 0)
-                {
-                    prevSentence = CurrentPage.Sentences[i - 1];
-                }
+                RequestManager requestManager = new(Pages, SelectedWord);
 
-                Sentence? nextSentence = null;
-                if (i + 1 < sentencesCount)
-                {
-                    nextSentence = CurrentPage.Sentences[i + 1];
-                }
-
-                string stringRepresentationOfSentence = String.Join(' ', sentence.Tokens.Select(t => t.Text).ToArray());
-                string request = $"Give me a simple definition for word \'{SelectedWord.Text}\' in the context of the sentence \'{stringRepresentationOfSentence}\'.";
-
-                if (prevSentence != null)
-                {
-                    string stringRepresentationOfPrevSentence = String.Join(' ', prevSentence.Tokens.Select(t => t.Text).ToArray());
-                    request += $"\nTake into account that previous sentence is \'{stringRepresentationOfPrevSentence}\'.";
-                }
-
-                if (nextSentence != null)
-                {
-                    string stringRepresentationOfNextSentence = String.Join(' ', nextSentence.Tokens.Select(t => t.Text).ToArray());
-                    request += $"\nNext sentence is \'{stringRepresentationOfNextSentence}\'.";
-                }
+                string request = requestManager.GetBaseRequestForWord();
+                string synonymsRequest = requestManager.GetSynonymsRequestForWord();
 
                 chat.AppendUserInput(request);
                 string response = await chat.GetResponseFromChatbotAsync();
 
                 chat = api.Chat.CreateConversation();
-                chat.AppendUserInput($"Give me a list of 3 most appropriate synonyms for word \'{SelectedWord.Text}\' in the context of the sentence \'{stringRepresentationOfSentence}\'. Split synonyms by comma. Follow the pattern: \'Synonyms: list of synonyms.\'");
+                chat.AppendUserInput(synonymsRequest);
                 string synonymsResponse = await chat.GetResponseFromChatbotAsync();
 
                 SelectedWord.Definition = $"{response}";
@@ -906,18 +876,10 @@
             }
             else
             {
-                var stringRepresentations = new List<string>(SelectedSentences.Count);
-                foreach (Sentence sentence in SelectedSentences)
-                {
-                    string stringRepresentationOfSentence = String.Join(' ', sentence.Tokens.Select(t => t.Text).ToArray());
-                    stringRepresentations.Add(stringRepresentationOfSentence);
-                }
+                TikToken tikToken = TikToken.EncodingForModel("gpt-3.5-turbo");
+                string request = RequestManager.GetRequestForSentences(tikToken, SelectedSentences);
 
-                string finalJoin = string.Join('\n', stringRepresentations);
-
-                string content = $"Paraphrase this sentences and use really simple English words:\n\n\'{finalJoin}\'";
-
-                chat.AppendUserInput(content);
+                chat.AppendUserInput(request);
                 string response = await chat.GetResponseFromChatbotAsync();
 
                 Modal.Title = "Paraphrased version";
@@ -925,6 +887,13 @@
                 Modal.ModalType = ModalType.Regular;
                 ShowModal = true;
             }
+        }
+        catch (RequestTooLongException e)
+        {
+            Modal.Title = "Try again";
+            Modal.TextContent = e.Message;
+            Modal.ModalType = ModalType.Warning;
+            ShowModal = true;
         }
         catch (Exception e)
         {
@@ -938,8 +907,15 @@
             IsLoading = false;
         }
     }
+    
+/*
+    private async Task ShowAlert(string msg)
+    {
+        await JsRuntime.InvokeVoidAsync("showAlert", msg);
+    }
+*/
 
-    private const string LocalStorageInputName = "input";
+        private const string LocalStorageInputName = "input";
     private const string LocalStorageKeyName = "apikey";
 
     private async Task SetOpenAiKey(string s)
