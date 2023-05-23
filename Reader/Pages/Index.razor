@@ -114,7 +114,7 @@
         @if (CurrentPage == null)
         {
             <div class="file-input-zone">
-                <InputFile OnChange="HandleFileSelected" accept=".pdf,.epub,.txt,.fb2,application/pdf,application/epub+zip,text/plain" />
+                <InputFile OnChange="HandleFileSelected" accept=".pdf,.epub,.txt,.fb2,application/pdf,application/epub+zip,text/plain,audio/mpeg,audio/wav" />
             </div>
 
             <ButtonComponent 
@@ -228,7 +228,8 @@
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
         IBrowserFile file = e.File;
-        if (Path.GetExtension(file.Name).Contains("epub"))
+        string extension = Path.GetExtension(file.Name);
+        if (extension.Contains("epub"))
         {
             try
             {
@@ -267,7 +268,7 @@
             }
         }
         
-        if (Path.GetExtension(file.Name).Contains("pdf"))
+        if (extension.Contains("pdf"))
         {
             try
             {
@@ -309,7 +310,7 @@
             }
         }
         
-        if (Path.GetExtension(file.Name).Contains("txt"))
+        if (extension.Contains("txt"))
         {
             try
             {
@@ -341,7 +342,7 @@
             }
         }
         
-        if (Path.GetExtension(file.Name).Contains("fb2"))
+        if (extension.Contains("fb2"))
         {
             try
             {
@@ -383,6 +384,49 @@
             }
             finally
             {
+                IsLoading = false;
+            }
+        }
+
+        if (extension.Contains("mp3") || extension.Contains("wav"))
+        {
+            IsLoading = true;
+
+            Assembly currentAssembly = Assembly.GetExecutingAssembly();
+            string audioFilePath = $"{new FileInfo(currentAssembly.Location).Directory!.FullName}/{Guid.NewGuid()}{extension}";
+            
+            try
+            {
+                if (String.IsNullOrWhiteSpace(OpenAiKey))
+                {
+                    throw new Exception("You must provide OpenAI API key (https://platform.openai.com/account/api-keys). Open settings and add the key.");
+                }
+                
+                // Save the file to the temporary location
+                await using FileStream fileStream = new(audioFilePath, FileMode.Create);
+                await file.OpenReadStream(30000000).CopyToAsync(fileStream);
+
+                RawTextAreaContent = await TranscribeAudio(audioFilePath);
+            }
+            catch (Exception ex)
+            {
+                Modal.Title = "Error";
+                Modal.TextContent = ex.Message;
+                Modal.ModalType = ModalType.Error;
+                ShowModal = true;
+            }
+            finally
+            {
+                DeleteTempFile();
+            }
+            
+            DeleteTempFile();
+
+            void DeleteTempFile()
+            {
+                // Delete the temporary file
+                File.Delete(audioFilePath);
+
                 IsLoading = false;
             }
         }
@@ -669,7 +713,7 @@
         JObject? jsonResponse = JsonConvert.DeserializeObject<JObject>(responseString);
         if (jsonResponse == null)
         {
-            throw new Exception("Error when trying to get transcript from youtube");
+            throw new Exception("Error when trying to get transcript from audio");
         }
 
         string text = jsonResponse["text"]!.Value<string>() ?? "";
@@ -907,15 +951,8 @@
             IsLoading = false;
         }
     }
-    
-/*
-    private async Task ShowAlert(string msg)
-    {
-        await JsRuntime.InvokeVoidAsync("showAlert", msg);
-    }
-*/
 
-        private const string LocalStorageInputName = "input";
+    private const string LocalStorageInputName = "input";
     private const string LocalStorageKeyName = "apikey";
 
     private async Task SetOpenAiKey(string s)
