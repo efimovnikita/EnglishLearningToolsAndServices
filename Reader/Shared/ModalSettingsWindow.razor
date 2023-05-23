@@ -44,10 +44,14 @@
             </button>
         </div>
         <div id="separator" class="@separatorStyle"></div>
-        <div id="modal-content" class="text-[#374151] scrollbar-thin scrollbar-thumb-[#B4C6FC] scrollbar-track-[#E5EDFF] overflow-auto max-h-[350px] flex flex-col w-full p-[10px]">
-            <div class="flex justify-start items-center gap-[10px]">
+        <div id="modal-content" class="flex gap-4 text-[#374151] scrollbar-thin scrollbar-thumb-[#B4C6FC] scrollbar-track-[#E5EDFF] overflow-auto max-h-[350px] flex flex-col w-full p-[10px]">
+            <div class="flex flex-col justify-start items-center gap-[10px]">
                 <p class="">OpenAI&nbsp;API&nbsp;key:</p>
-                <input @bind="Content" @oninput="UpdateOpenAiKey" class="w-[200px] bg-[#F0F5FF] border-[1px] border-[#B4C6FC] rounded-[10px] p-[10px]" type="text" placeholder="Key..." />
+                <input @bind="OpenAiapiKey" @oninput="UpdateOpenAiKey" class="bg-[#F0F5FF] border-[1px] border-[#B4C6FC] rounded-[10px] p-[10px]" type="text" placeholder="Key..." />
+            </div>
+            <div class="flex flex-col justify-start items-center gap-[10px]">
+                <p class="">ElevenLabs&nbsp;API&nbsp;key:</p>
+                <input @bind="ElevenLabsApiKey" @oninput="UpdateOElevenLabsApiKey" class="bg-[#F0F5FF] border-[1px] border-[#B4C6FC] rounded-[10px] p-[10px]" type="text" placeholder="Key..." />
             </div>
         </div>
     </div>
@@ -59,10 +63,16 @@
     public string Title { get; set; } = "Settings";
 
     [Parameter]
-    public string Content { get; set; } = "";
+    public string OpenAiapiKey { get; set; } = "";
+    
+    [Parameter]
+    public string ElevenLabsApiKey { get; set; } = "";
     
     [Parameter]
     public EventCallback<string> OpenAiKeyChanged { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> ElevenLabsApiKeyChanged { get; set; }
 
     [Parameter]
     public ModalType ModalType { get; set; } = ModalType.Regular;
@@ -71,8 +81,13 @@
     
     private async Task UpdateOpenAiKey(ChangeEventArgs e)
     {
-        Content = e.Value!.ToString()!;
-        await OpenAiKeyChanged.InvokeAsync(Content);
+        OpenAiapiKey = e.Value!.ToString()!;
+        await OpenAiKeyChanged.InvokeAsync(OpenAiapiKey);
     }
 
+    private async Task UpdateOElevenLabsApiKey(ChangeEventArgs e)
+    {
+        ElevenLabsApiKey = e.Value!.ToString()!;
+        await ElevenLabsApiKeyChanged.InvokeAsync(ElevenLabsApiKey);
+    }
 }

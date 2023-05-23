@@ -1,4 +1,9 @@
+@using System.Text.Json
+@using System.Text
+@using Microsoft.JSInterop.Implementation
+@using System.Net.Http.Headers
 @namespace Reader.Shared
+@inject IJSRuntime JsRuntime
 
 @{
     string modalStyle = "absolute bottom-0 left-0 w-full h-full flex justify-center items-center px-[10px]";
@@ -43,9 +48,23 @@
     <div id="modal-window" class="@modalWindowStyle">
         <div id="title" class="flex justify-between p-[5px]">
             <p class="@titleTextStyle">@Title</p>
-            <button type="button" @onclick="CloseModal" class="@closeButtonStyle">
-                <img src="assets/cross.svg" alt="" width="15" height="15"/>
-            </button>
+            @if (this.ModalType == ModalType.Regular && Token != null)
+            {
+                <div class="flex gap-4">
+                    <button @onclick="PlayAudio" class="@closeButtonStyle">
+                        <img src="assets/sound.svg" alt="" width="20" height="20"/>
+                    </button>
+                    <button type="button" @onclick="CloseModal" class="@closeButtonStyle">
+                        <img src="assets/cross.svg" alt="" width="15" height="15"/>
+                    </button>
+                </div>
+            }
+            else
+            {
+                <button type="button" @onclick="CloseModal" class="@closeButtonStyle">
+                    <img src="assets/cross.svg" alt="" width="15" height="15"/>
+                </button>
+            }
         </div>
         <div id="separator" class="@separatorStyle"></div>
         <div id="modal-content" class="flex justify-between p-[10px]">
@@ -65,5 +84,64 @@
     [Parameter]
     public ModalType ModalType { get; set; } = ModalType.Regular;
     
+    [Parameter]
+    public Token? Token { get; set; }
+    
+    [Parameter]
+    public string? ElevenLabsApiKey { get; set; }
+    
     [Parameter] public EventCallback CloseModal { get; set; }
+    
+    private async Task PlayAudio()
+    {
+        try
+        {
+            if (String.IsNullOrWhiteSpace(ElevenLabsApiKey))
+            {
+                return;
+            }
+            
+            if (Token == null)
+            {
+                return;
+            }
+        
+            const string url = "https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL";
+
+            TextToSpeechRequest requestData = new(Token.Text, "eleven_monolingual_v1",
+                new VoiceSettings(0.5, 0.5));
+
+            JsonSerializerOptions jsonOptions = new()
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            string jsonData = JsonSerializer.Serialize(requestData, jsonOptions);
+
+            using HttpClient client = new();
+        
+            client.DefaultRequestHeaders.Add("accept", "audio/mpeg");
+            client.DefaultRequestHeaders.Add("xi-api-key", this.ElevenLabsApiKey);
+
+            HttpContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Read the audio content from the response stream
+                byte[] audioData = await response.Content.ReadAsByteArrayAsync();
+
+                // Convert the audio data to a base64-encoded string
+                string base64Audio = Convert.ToBase64String(audioData);
+
+                // Invoke JavaScript function to play the audio
+                await JsRuntime.InvokeVoidAsync("playAudio", base64Audio);
+            }
+        }
+        catch
+        {
+            // ignored
+        }
+    }
 }
