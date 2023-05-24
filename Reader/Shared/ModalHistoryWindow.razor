@@ -1,4 +1,6 @@
+@using System.Text
 @namespace Reader.Shared
+@inject IJSRuntime JsRuntime
 
 @{
     string modalStyle = "absolute bottom-0 left-0 w-full h-full flex justify-center items-center px-[10px]";
@@ -43,9 +45,14 @@
     <div id="modal-window" class="@modalWindowStyle">
         <div id="title" class="flex justify-between p-[5px]">
             <p class="@titleTextStyle">@Title</p>
-            <button type="button" @onclick="CloseModal" class="@closeButtonStyle">
-                <img src="assets/cross.svg" alt="" width="15" height="15"/>
-            </button>
+            <div class="flex gap-4">
+                <button @onclick="CopyToClipboard" class="@closeButtonStyle">
+                    <img src="assets/clipboard.svg" alt="" width="20" height="20"/>
+                </button>
+                <button type="button" @onclick="CloseModal" class="@closeButtonStyle">
+                    <img src="assets/cross.svg" alt="" width="15" height="15"/>
+                </button>
+            </div>
         </div>
         <div id="separator" class="@separatorStyle"></div>
         <div id="modal-content" class="flex w-full p-[10px]">
@@ -69,8 +76,27 @@
     [Parameter]
     public List<Token> Content { get; set; } = new();
 
+    public string ClipboardContent
+    {
+        get
+        {
+            StringBuilder builder = new();
+            foreach (Token token in this.Content)
+            {
+                builder.AppendLine($"{token.Text} - {token.Definition}");
+            }
+
+            return builder.ToString();
+        }
+    }
+
     [Parameter]
     public ModalType ModalType { get; set; } = ModalType.Regular;
     
     [Parameter] public EventCallback CloseModal { get; set; }
+    
+    private async Task CopyToClipboard()
+    {
+        await JsRuntime.InvokeVoidAsync("copyToClipboard", ClipboardContent);
+    }
 }
