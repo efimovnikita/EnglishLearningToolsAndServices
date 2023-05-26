@@ -15,13 +15,8 @@
 @using iText.Kernel.Pdf
 @using iText.Kernel.Pdf.Canvas.Parser
 @using iText.Kernel.Pdf.Canvas.Parser.Listener
-@using YoutubeExplode
-@using YoutubeExplode.Videos.ClosedCaptions
 @using System.Reflection
-@using CliWrap
-@using CliWrap.Buffered
-@using Newtonsoft.Json
-@using Newtonsoft.Json.Linq
+@using Reader.Tools
 @using TiktokenSharp
 @inject NavigationManager NavigationManager
 
@@ -416,7 +411,8 @@
                 await using FileStream fileStream = new(audioFilePath, FileMode.Create);
                 await file.OpenReadStream(30000000).CopyToAsync(fileStream);
 
-                RawTextAreaContent = await TranscribeAudio(audioFilePath);
+                AudioTranscriber transcriber = new(OpenAiKey);
+                RawTextAreaContent = await transcriber.TranscribeAudio(audioFilePath);
             }
             catch (Exception ex)
             {
@@ -480,10 +476,12 @@
             Pages.Clear();
             
             // process URL's
-            string? url = ExtractUrl(RawTextAreaContent);
+            UrlExtractor urlExtractor = new();
+            string? url = urlExtractor.ExtractUrl(RawTextAreaContent);
             if (String.IsNullOrEmpty(url) == false)
             {
-                string textContentFromUrlAsync = await ExtractTextContentFromUrlAsync(url);
+                TextContentExtractor textContentExtractor = new(OpenAiKey!);
+                string textContentFromUrlAsync = await textContentExtractor.ExtractTextContentFromUrlAsync(url);
                 if (String.IsNullOrEmpty(textContentFromUrlAsync) == false)
                 {
                     RawTextAreaContent = textContentFromUrlAsync;
@@ -541,295 +539,6 @@
         {
             IsLoading = false;
         }
-    }
-    
-    public async Task<string> ExtractTextContentFromUrlAsync(string? url)
-    {
-        if (string.IsNullOrWhiteSpace(url))
-        {
-            throw new ArgumentException("URL cannot be null or empty.", nameof(url));
-        }
-
-        using HttpClient httpClient = new();
-        HttpResponseMessage response = await httpClient.GetAsync(url);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new HttpRequestException($"Request to {url} failed with status code {response.StatusCode}.");
-        }
-
-        string htmlContent = await response.Content.ReadAsStringAsync();
-        HtmlDocument htmlDocument = new();
-        htmlDocument.LoadHtml(htmlContent);
-
-        HtmlNode? bodyNode = htmlDocument.DocumentNode.SelectSingleNode("//body");
-        if (bodyNode == null)
-        {
-            throw new InvalidOperationException("The web page doesn't have a body tag.");
-        }
-
-        if (IsUrlFromTheGuardian(url))
-        {
-            return ExtractTextFromGuardian(bodyNode);
-        }
-        
-        if (IsUrlFromBbc(url))
-        {
-            return ExtractTextFromBbc(bodyNode);
-        }
-        
-        if (IsUrlFromWashingtonPost(url))
-        {
-            return ExtractTextFromWashingtonPost(bodyNode);
-        }
-        
-        if (IsUrlFromYouTube(url))
-        {
-            if (String.IsNullOrWhiteSpace(OpenAiKey))
-            {
-                throw new Exception("You must provide OpenAI API key (https://platform.openai.com/account/api-keys). Open settings and add the key.");
-            }
-            return await ExtractTextFromYouTube(url);
-        }
-
-        return ExtractTextFromNode(bodyNode);
-    }
-
-    private static bool IsUrlFromTheGuardian(string url)
-    {
-        Uri uri = new(url);
-        return uri.Host.Contains("theguardian.com");
-    }
-    
-    private static bool IsUrlFromBbc(string url)
-    {
-        Uri uri = new(url);
-        return uri.Host.Contains("bbc.com");
-    }
-    
-    private static bool IsUrlFromYouTube(string url)
-    {
-        Uri uri = new(url);
-        return uri.Host.Contains("youtu.be") || uri.Host.Contains("youtube.com");
-    }
-    
-    private static bool IsUrlFromWashingtonPost(string url)
-    {
-        Uri uri = new(url);
-        return uri.Host.Contains("washingtonpost.com");
-    }
-    
-    private static string ExtractTextFromWashingtonPost(HtmlNode node)
-    {
-        StringBuilder extractedText = new();
-
-        HtmlNodeCollection? headlineNodes = node.SelectNodes("//h1[@data-qa='headline']");
-        HtmlNodeCollection? bodyNodes = node.SelectNodes("//div[@data-qa='article-body']");
-
-        if (headlineNodes != null)
-        {
-            foreach (HtmlNode? headlineNode in headlineNodes)
-            {
-                extractedText.AppendLine(ExtractTextFromNode(headlineNode));
-            }
-        }
-
-        if (bodyNodes != null)
-        {
-            foreach (HtmlNode? n in bodyNodes)
-            {
-                extractedText.AppendLine(ExtractTextFromNode(n));
-            }
-        }
-
-        return extractedText.ToString().Trim();
-    }
-    
-    private async Task<string> ExtractTextFromYouTube(string url)
-    {
-        YoutubeClient youtube = new();
-
-        ClosedCaptionManifest trackManifest = await youtube.Videos.ClosedCaptions.GetManifestAsync(url);
-
-        trackManifest.GetByLanguage("en");
-
-        Assembly currentAssembly = Assembly.GetExecutingAssembly();
-        string audioFilePath = $"{new FileInfo(currentAssembly.Location).Directory!.FullName}/{Guid.NewGuid()}.mp3";
-
-        string result = "";
-        try
-        {
-            await Cli.Wrap("chmod")
-                .WithArguments("u+x \"yt-dlp_linux\"")
-                .ExecuteAsync();
-            
-            string arguments =
-                $"-c \"./yt-dlp_linux -x --audio-format mp3 -o {audioFilePath} '{url}'\"";
-
-            Command cmd = Cli.Wrap("/bin/bash")
-                .WithArguments(arguments);
-
-            await cmd.ExecuteBufferedAsync();
-
-            result = await TranscribeAudio(audioFilePath);
-
-            DeleteTempAudio(audioFilePath);
-
-            return result;
-        }
-        catch (Exception e)
-        {
-            Modal.Title = "Error";
-            Modal.TextContent = e.Message;
-            Modal.ModalType = ModalType.Error;
-            ShowModal = true;
-        }
-        finally
-        {
-            DeleteTempAudio(audioFilePath);
-        }
-        
-        return result;
-    }
-
-    private static void DeleteTempAudio(string audioFilePath)
-    {
-        if (File.Exists(audioFilePath))
-        {
-            File.Delete(audioFilePath);
-        }
-    }
-
-    private async Task<string> TranscribeAudio(string fileName)
-    {
-        HttpClient client = new();
-        
-        ByteArrayContent byteArrayContent = new(File.ReadAllBytes(fileName));
-        byteArrayContent.Headers.Remove("Content-Type");
-        byteArrayContent.Headers.TryAddWithoutValidation("Content-Type", "application/octet-stream");
-        
-        StringContent modelContent = new("whisper-1");
-
-        using MultipartFormDataContent formData = new();
-        formData.Add(byteArrayContent, "file", Path.GetFileName(fileName));
-        formData.Add(modelContent, "model");
-
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {OpenAiKey}");
-
-        HttpResponseMessage response = await client.PostAsync("https://api.openai.com/v1/audio/transcriptions", formData);
-        response.EnsureSuccessStatusCode();
-        string responseString = await response.Content.ReadAsStringAsync();
-
-        JObject? jsonResponse = JsonConvert.DeserializeObject<JObject>(responseString);
-        if (jsonResponse == null)
-        {
-            throw new Exception("Error when trying to get transcript from audio");
-        }
-
-        string text = jsonResponse["text"]!.Value<string>() ?? "";
-
-        return text;
-    }
-
-    private static string ExtractTextFromGuardian(HtmlNode node)
-    {
-        StringBuilder extractedText = new();
-
-        HtmlNodeCollection? headlineNodes = node.SelectNodes("//div[@data-gu-name='headline']");
-        HtmlNodeCollection? standfirstNodes = node.SelectNodes("//div[@data-gu-name='standfirst']");
-        HtmlNodeCollection? bodyNodes = node.SelectNodes("//div[@data-gu-name='body']");
-
-        if (headlineNodes != null)
-        {
-            foreach (HtmlNode? headlineNode in headlineNodes)
-            {
-                extractedText.AppendLine(ExtractTextFromNode(headlineNode));
-            }
-        }
-
-        if (standfirstNodes != null)
-        {
-            foreach (HtmlNode? standfirstNode in standfirstNodes)
-            {
-                extractedText.AppendLine(ExtractTextFromNode(standfirstNode));
-            }
-        }
-        
-        if (bodyNodes != null)
-        {
-            foreach (HtmlNode? n in bodyNodes)
-            {
-                extractedText.AppendLine(ExtractTextFromNode(n));
-            }
-        }
-
-        return extractedText.ToString().Trim();
-    }
-    
-    private static string ExtractTextFromBbc(HtmlNode node)
-    {
-        StringBuilder extractedText = new();
-
-        HtmlNodeCollection? mainNodes = node.SelectNodes("//*[@id='main-content']");
-
-        if (mainNodes != null)
-        {
-            foreach (HtmlNode? htmlNode in mainNodes)
-            {
-                extractedText.AppendLine(ExtractTextFromNode(htmlNode));
-            }
-        }
-
-        return extractedText.ToString().Trim();
-    }
-
-    private static string ExtractTextFromNode(HtmlNode? node)
-    {
-        if (node == null)
-        {
-            return string.Empty;
-        }
-
-        if (node.NodeType == HtmlNodeType.Text)
-        {
-            return node.InnerText.Trim();
-        }
-
-        // Skip script nodes and style nodes
-        if (node.Name.Equals("script", StringComparison.OrdinalIgnoreCase) ||
-            node.Name.Equals("style", StringComparison.OrdinalIgnoreCase))
-        {
-            return string.Empty;
-        }
-
-        // Remove inline CSS
-        if (node.HasAttributes && node.Attributes.Contains("style"))
-        {
-            node.Attributes.Remove("style");
-        }
-
-        var extractedText = new StringBuilder();
-
-        foreach (var childNode in node.ChildNodes)
-        {
-            extractedText.AppendLine(ExtractTextFromNode(childNode));
-        }
-
-        return extractedText.ToString().Trim();
-    }
-    
-    public static string? ExtractUrl(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-        {
-            return null;
-        }
-
-        string pattern = @"^(https?|ftp|file):\/\/[-A-Za-z0-9+&@#\/%?=~_|!:,.;]*[-A-Za-z0-9+&@#\/%=~_|]";
-        Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
-        Match match = regex.Match(input);
-
-        return match.Success ? match.Value : null;
     }
 
     private static List<List<T>> SplitIntoChunks<T>(List<T> list, int chunkSize)
