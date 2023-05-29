@@ -2,4 +2,7 @@
 WORKDIR /app
 COPY bin/Release/net6.0/publish .
 
+RUN apt-get update
+RUN apt-get install -y ffmpeg
+
 ENTRYPOINT ["dotnet", "ParaphraserBot.dll"]

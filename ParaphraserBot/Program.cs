@@ -158,10 +158,10 @@ internal class Program
             
             Directory.Delete(tempAudioFolder, true);
         }
-        catch (Exception)
+        catch (Exception e)
         {
             await client.SendTextMessageAsync(chatId,
-                "Error. Something went wrong",
+                $"Error. Something went wrong:\n{e}",
                 replyToMessageId: messageId,
                 cancellationToken: token);
         }
