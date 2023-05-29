@@ -128,21 +128,7 @@ internal class Program
             string tempAudioFolder = Path.Combine(PiperFolderPath, Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempAudioFolder);
 
-            for (int i = 0; i < responseSentences.Count; i++)
-            {
-                try
-                {
-                    string audioPath = Path.Combine(tempAudioFolder, $"{i}.wav");
-                    Command cmd = Cli.Wrap("/bin/bash")
-                        .WithWorkingDirectory(PiperFolderPath)
-                        .WithArguments($"-c \"echo '{responseSentences[i]}' | ./piper -m 'en-us-ryan-high.onnx' --output_file '{audioPath}'\"");
-                    await cmd.ExecuteBufferedAsync();
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
+            await GenerateAudio(responseSentences, tempAudioFolder);
             
             WavFinder finder = new(tempAudioFolder);
             
@@ -170,6 +156,29 @@ internal class Program
                 replyToMessageId: messageId,
                 cancellationToken: token);
             Console.WriteLine($"Error. Something went wrong:\n{e}");
+        }
+    }
+
+    private static async Task GenerateAudio(List<Sentence> responseSentences, string tempAudioFolder)
+    {
+        for (int i = 0; i < responseSentences.Count; i++)
+        {
+            string audioPath = Path.Combine(tempAudioFolder, $"{i}.wav");
+
+            try
+            {
+                Command cmd = Cli.Wrap("/bin/bash")
+                    .WithWorkingDirectory(PiperFolderPath)
+                    .WithArguments(
+                        $"-c \"echo '{responseSentences[i]}' | ./piper -m 'en-us-ryan-high.onnx' --output_file '{audioPath}'\"");
+                await cmd.ExecuteBufferedAsync();
+
+                Console.WriteLine($"Audio file '{audioPath}' was generated");
+            }
+            catch
+            {
+                Console.WriteLine($"Audio file '{audioPath}' wasn't generated. Error occurred.");
+            }
         }
     }
 
