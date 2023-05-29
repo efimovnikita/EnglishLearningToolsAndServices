@@ -165,6 +165,10 @@ internal class Program
         }
         catch (Exception e)
         {
+            await client.SendTextMessageAsync(chatId,
+                "Error. Something went wrong. See logs...",
+                replyToMessageId: messageId,
+                cancellationToken: token);
             Console.WriteLine($"Error. Something went wrong:\n{e}");
         }
     }
