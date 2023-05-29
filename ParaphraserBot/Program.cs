@@ -107,6 +107,11 @@ internal class Program
             foreach (Fraction fraction in fractions)
             {
                 string paraphrasedResponse = await GetParaphrasedResponse(fraction);
+                if (String.IsNullOrEmpty(paraphrasedResponse))
+                {
+                    continue;
+                }
+                
                 responses.Add(paraphrasedResponse);
                 
                 await client.SendTextMessageAsync(chatId,
@@ -160,10 +165,7 @@ internal class Program
         }
         catch (Exception e)
         {
-            await client.SendTextMessageAsync(chatId,
-                $"Error. Something went wrong:\n{e}",
-                replyToMessageId: messageId,
-                cancellationToken: token);
+            Console.WriteLine($"Error. Something went wrong:\n{e}");
         }
     }
 
@@ -174,7 +176,16 @@ internal class Program
         chat.AppendSystemMessage(SystemMessage);
         string request = RequestManager.GetRequestForSentences(_tikToken!, fraction.Sentences);
         chat.AppendUserInput(request);
-        string response = await chat.GetResponseFromChatbotAsync();
+        string response = String.Empty;
+        try
+        {
+            response = await chat.GetResponseFromChatbotAsync();
+        }
+        catch
+        {
+            // ignored
+        }
+
         return response;
     }
 
