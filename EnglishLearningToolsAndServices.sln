@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reader", "Reader\Reader.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParaphraserBot", "ParaphraserBot\ParaphraserBot.csproj", "{75E12EB8-1BDE-4DB2-8268-145E04CB07C7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoutubeAudioApi", "YoutubeAudioApi\YoutubeAudioApi.csproj", "{5B926717-5F7D-4AF5-8884-1DC8B899189E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{75E12EB8-1BDE-4DB2-8268-145E04CB07C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75E12EB8-1BDE-4DB2-8268-145E04CB07C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75E12EB8-1BDE-4DB2-8268-145E04CB07C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B926717-5F7D-4AF5-8884-1DC8B899189E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B926717-5F7D-4AF5-8884-1DC8B899189E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B926717-5F7D-4AF5-8884-1DC8B899189E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B926717-5F7D-4AF5-8884-1DC8B899189E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

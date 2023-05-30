@@ -1,10 +1,6 @@
 using System.Reflection;
 using System.Text;
-using CliWrap;
-using CliWrap.Buffered;
 using HtmlAgilityPack;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using YoutubeExplode;
 using YoutubeExplode.Videos.ClosedCaptions;
 
@@ -135,17 +131,7 @@ public class TextContentExtractor
 
         try
         {
-            await Cli.Wrap("chmod")
-                .WithArguments("u+x \"yt-dlp_linux\"")
-                .ExecuteAsync();
-            
-            string arguments =
-                $"-c \"./yt-dlp_linux -x --audio-format mp3 -o {audioFilePath} '{url}'\"";
-
-            Command cmd = Cli.Wrap("/bin/bash")
-                .WithArguments(arguments);
-
-            await cmd.ExecuteBufferedAsync();
+            await YoutubeAudioDownloader.GetAudioFromYoutube(url, audioFilePath);
 
             AudioTranscriber transcriber = new(_openAiKey);
             string result = await transcriber.TranscribeAudio(audioFilePath);
@@ -159,7 +145,7 @@ public class TextContentExtractor
             DeleteTempAudio(audioFilePath);
         }
     }
-    
+
     private static void DeleteTempAudio(string audioFilePath)
     {
         if (File.Exists(audioFilePath))
