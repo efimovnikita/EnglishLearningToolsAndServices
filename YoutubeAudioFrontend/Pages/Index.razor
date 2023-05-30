@@ -29,7 +29,7 @@
 
         // Now you can use the shared data.
         // Do the HTTP request to get the audio file
-        string audioUrl = $"https://45.146.164.32:5445/api/getAudioFromYoutube?url={Url}";
+        string audioUrl = $"https://45.146.164.32:5445/api/getAudioFromYoutube?url={Text}";
         HttpResponseMessage audioResponse = await Http.GetAsync(audioUrl);
 
         if (audioResponse.IsSuccessStatusCode)
