@@ -1,7 +1,6 @@
 ﻿@page "/"
 @page "/share"
 @using Microsoft.Extensions.Primitives
-@using Microsoft.AspNetCore.WebUtilities
 @inject NavigationManager NavigationManager
 
 
@@ -17,20 +16,17 @@
     public string Title { get; set; } = "";
     public string Url { get; set; } = "";
     public string Text { get; set; } = "";
-
-    protected override async Task OnInitializedAsync()
+    
+    protected override void OnInitialized()
     {
-        Uri uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        Uri uri = new(NavigationManager.Uri);
+        // Extract parameters from the query string.
+        Dictionary<string, StringValues>? query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        Title = query.TryGetValue("title", out StringValues title) ? title : "no";
+        Text = query.TryGetValue("text", out StringValues text) ? text : "no";
+        Url = query.TryGetValue("url", out StringValues url) ? url : "no";
 
-        Dictionary<string, StringValues> query = QueryHelpers.ParseQuery(uri.Query);
-
-
-        query.TryGetValue("text", out StringValues text);
-        query.TryGetValue("title", out StringValues title);
-        query.TryGetValue("url", out StringValues url);
-
-        Title = title;
-        Text = text;
-        Url = url;
+        // Now you can use the shared data.
+        base.OnInitialized();
     }
 }
