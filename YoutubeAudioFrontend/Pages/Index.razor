@@ -1,0 +1,36 @@
+﻿@page "/"
+@page "/share"
+@using Microsoft.Extensions.Primitives
+@using Microsoft.AspNetCore.WebUtilities
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Index</PageTitle>
+
+<p>Title: @Title</p>
+<p>Text: @Text</p>
+<p>Url: @Url</p>
+
+
+@code
+{
+    public string Title { get; set; } = "";
+    public string Url { get; set; } = "";
+    public string Text { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Uri uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+
+        Dictionary<string, StringValues> query = QueryHelpers.ParseQuery(uri.Query);
+
+
+        query.TryGetValue("text", out StringValues text);
+        query.TryGetValue("title", out StringValues title);
+        query.TryGetValue("url", out StringValues url);
+
+        Title = title;
+        Text = text;
+        Url = url;
+    }
+}
