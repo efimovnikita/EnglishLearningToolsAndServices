@@ -22,6 +22,7 @@ internal class Program
     private static TikToken? _tikToken;
     private static readonly string AssemblyLocation = Directory.GetCurrentDirectory();
     private static readonly string PiperFolderPath = Path.Combine(AssemblyLocation, "piper");
+    private static string? _promptStarter;
 
     public static void Main(string[] args)
     {
@@ -46,6 +47,14 @@ internal class Program
         }
 
         _allowedUsersList = allowedUsers.Split(' ').Select(Int32.Parse).ToList();
+
+        string? prompt = Environment.GetEnvironmentVariable("SIMPLIFICATION_PROMPT");
+        if (prompt == null)
+        {
+            Console.WriteLine("Simplification prompt didn't set");
+            return;
+        }
+        _promptStarter = $"{prompt}:\n\n";
 
         TelegramBotClient client = new(telegramBotApiKey);
         client.StartReceiving(UpdateHandler, ErrorHandler);
@@ -187,7 +196,9 @@ internal class Program
         OpenAIAPI api = new(_openAiApiKey);
         Conversation? chat = api.Chat.CreateConversation();
         chat.AppendSystemMessage(SystemMessage);
-        string request = RequestManager.GetRequestForSentences(_tikToken!, fraction.Sentences);
+        string request = RequestManager.GetRequestForSentences(_tikToken!,
+            fraction.Sentences,
+            _promptStarter);
         chat.AppendUserInput(request);
         string response = String.Empty;
         try

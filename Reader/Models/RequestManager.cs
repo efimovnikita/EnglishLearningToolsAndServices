@@ -66,10 +66,11 @@ public class RequestManager
         return builder.ToString();
     }
 
-    public static string GetRequestForSentences(TikToken tikToken, List<Sentence> sentences)
+    public static string GetRequestForSentences(TikToken tikToken, List<Sentence> sentences,
+        string? promptStarter = "Paraphrase this sentences and use really simple English words:\n\n")
     {
         StringBuilder builder = new();
-        builder.AppendLine("Paraphrase this sentences and use really simple English words:\n\n");
+        builder.AppendLine(promptStarter);
         foreach (Sentence sentence in sentences)
         {
             builder.AppendLine(sentence.ToString());
