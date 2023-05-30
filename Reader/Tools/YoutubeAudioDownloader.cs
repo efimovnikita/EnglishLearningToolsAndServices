@@ -10,7 +10,7 @@ public class YoutubeAudioDownloader
     {
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         string currentDirectory = Path.GetDirectoryName(currentAssembly.Location)!;
-        Console.WriteLine(currentDirectory);
+
         await Cli.Wrap("chmod")
             .WithWorkingDirectory(currentDirectory)
             .WithArguments("u+x \"yt-dlp_linux\"")

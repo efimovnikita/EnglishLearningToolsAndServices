@@ -7,6 +7,9 @@ builder.Services.AddEndpointsApiExplorer(); // enables the API explorer that Swa
 builder.Services.AddSwaggerGen(); // adds Swagger generator services.
 builder.Services.AddCors();
 
+// Configure the server to listen to any host on ports 5000 and 5001
+builder.WebHost.UseUrls("http://*:5000", "https://*:5001");
+
 WebApplication app = builder.Build();
 
 // Add middleware for Swagger
