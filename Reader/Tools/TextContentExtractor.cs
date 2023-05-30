@@ -79,8 +79,8 @@ public class TextContentExtractor
         Uri uri = new(url);
         return uri.Host.Contains("bbc.com");
     }
-    
-    private static bool IsUrlFromYouTube(string url)
+
+    public static bool IsUrlFromYouTube(string url)
     {
         Uri uri = new(url);
         return uri.Host.Contains("youtu.be") || uri.Host.Contains("youtube.com");
