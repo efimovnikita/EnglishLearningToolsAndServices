@@ -14,7 +14,7 @@ namespace ParaphraserBot;
 
 internal class Program
 {
-    private static int _limit = 500;
+    private static int _limit;
     private const string SystemMessage = "You are professional English teacher. Your speciality is to paraphrase given text into easy and understandable variation for intermediate English learner.";
     private const string OutputFileName = "merged.wav";
     private static List<int>? _allowedUsersList;
@@ -57,12 +57,7 @@ internal class Program
         _promptStarter = $"{prompt}:\n\n";
         
         string? limit = Environment.GetEnvironmentVariable("TOKEN_LIMIT");
-        if (limit == null)
-        {
-            Console.WriteLine("Token limit didn't set");
-            return;
-        }
-        _limit = Int32.Parse(limit);
+        _limit = limit != null ? Int32.Parse(limit) : 500;
 
         TelegramBotClient client = new(telegramBotApiKey);
         client.StartReceiving(UpdateHandler, ErrorHandler);
