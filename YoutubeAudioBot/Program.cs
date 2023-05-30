@@ -95,7 +95,12 @@ internal class Program
                 return;
             }
 
-            using HttpClient httpClient = new();
+            HttpClientHandler httpClientHandler = new()
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+            
+            using HttpClient httpClient = new(httpClientHandler);
             HttpResponseMessage response = await httpClient.GetAsync($"{_endpointUrl}/api/getAudioFromYoutube?url={url}", token);
 
             if (response.IsSuccessStatusCode)
