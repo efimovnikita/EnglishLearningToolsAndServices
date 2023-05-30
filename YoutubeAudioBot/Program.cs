@@ -113,7 +113,7 @@ internal class Program
 
                 Console.WriteLine($"File saved to {tempFilePath}");
 
-                await client.SendAudioAsync(chatId,
+                await client.SendVoiceAsync(chatId,
                     InputFile.FromStream(File.OpenRead(tempFilePath)),
                     replyToMessageId: messageId,
                     cancellationToken: token);
