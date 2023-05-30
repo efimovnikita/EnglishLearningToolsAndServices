@@ -1,7 +1,7 @@
 {
-    "name": "Test",
-    "short_name": "Test",
-    "description": "Test description",
+    "name": "Listen Youtube",
+    "short_name": "Listen Youtube",
+    "description": "Listen audio from youtube link",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#B4C6FC",
