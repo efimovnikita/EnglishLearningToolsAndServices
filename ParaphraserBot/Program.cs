@@ -135,6 +135,17 @@ internal class Program
                     cancellationToken: token);
             }
 
+            if (responses.Count == 0)
+            {
+                await client.SendTextMessageAsync(chatId,
+                    "LLM returns empty response. Paraphrasing was unsuccessful...",
+                    replyToMessageId: messageId,
+                    cancellationToken: token);
+                Console.WriteLine("LLM returns empty response. Paraphrasing was unsuccessful...");
+                
+                return;
+            }
+
             List<Sentence> responseSentences = responses.Select(s => s.Replace("'", "")
                     .Replace("\"", ""))
                 .SelectMany(TokenizerAndSentenceExtractor.GetSentencesList)
