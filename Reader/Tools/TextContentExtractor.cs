@@ -55,6 +55,11 @@ public class TextContentExtractor
         {
             return ExtractTextFromWashingtonPost(bodyNode);
         }
+         
+        if (IsUrlFromIsw(url))
+        {
+            return ExtractTextFromIsw(bodyNode);
+        }
         
         if (IsUrlFromYouTube(url))
         {
@@ -92,7 +97,38 @@ public class TextContentExtractor
         return uri.Host.Contains("washingtonpost.com");
     }
     
-        private static string ExtractTextFromWashingtonPost(HtmlNode node)
+    private static bool IsUrlFromIsw(string url)
+    {
+        Uri uri = new(url);
+        return uri.Host.Contains("understandingwar.org");
+    }
+    
+    private static string ExtractTextFromIsw(HtmlNode node)
+    {
+        StringBuilder extractedText = new();
+
+        HtmlNodeCollection? nodes = node.SelectNodes("//*[@id='block-system-main']/div/div/div[3]/div/div");
+        if (nodes == null)
+        {
+            return "";
+        }
+
+        if (nodes.Count == 0)
+        {
+            return "";
+        }
+
+        List<HtmlNode> children = nodes[0].ChildNodes.Where(htmlNode => htmlNode.Name != "div").ToList();
+
+        foreach (HtmlNode n in children.SelectMany(htmlNode => htmlNode.ChildNodes.Where(node1 => node1.Name != "span").ToList()))
+        {
+            extractedText.AppendLine(ExtractTextFromNode(n));
+        }
+        
+        return extractedText.ToString().Trim();
+    }
+    
+    private static string ExtractTextFromWashingtonPost(HtmlNode node)
     {
         StringBuilder extractedText = new();
 
