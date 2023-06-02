@@ -3,6 +3,9 @@ using CliWrap.Buffered;
 using NAudio.Wave;
 using OpenAI_API;
 using OpenAI_API.Chat;
+using Polly;
+using Polly.Fallback;
+using Polly.Retry;
 using Reader.Models;
 using Reader.Tools;
 using Telegram.Bot;
@@ -203,15 +206,21 @@ internal class Program
             fraction.Sentences,
             _promptStarter);
         chat.AppendUserInput(request);
-        string response = String.Empty;
-        try
-        {
-            response = await chat.GetResponseFromChatbotAsync();
-        }
-        catch
-        {
-            // ignored
-        }
+
+        AsyncRetryPolicy? retryPolicy = Policy
+            .Handle<Exception>()
+            .WaitAndRetryAsync(
+                3,
+                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                (_, _, retryCount, _) =>
+                {
+                    Console.WriteLine($"Failure getting paraphrased response from llm! Retrying... Attempt {retryCount}");
+                });
+
+        AsyncFallbackPolicy<string>? fallbackPolicy = Policy<string>.Handle<Exception>().FallbackAsync(string.Empty);
+
+        string response = await fallbackPolicy.WrapAsync(retryPolicy)
+            .ExecuteAsync(async () => await chat.GetResponseFromChatbotAsync());
 
         return response;
     }
