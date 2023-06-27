@@ -19,47 +19,48 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _) => {
-    if (String.IsNullOrEmpty(request.Text))
-    {
-        return Results.BadRequest("Text is required.");
-    }
-    
-    string location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-    string outputFilePath = Path.Combine(location, "output.wav");
+app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _, ILogger logger) =>
+{
+   if (String.IsNullOrEmpty(request.Text))
+   {
+       return Results.BadRequest("Text is required.");
+   }
 
-    // Sanitize the input text
-    string sanitizedText = System.Net.WebUtility.HtmlEncode(request.Text);
+   string location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+   string outputFilePath = Path.Combine(location, "output.wav");
 
-    try
-    {
-        Command cmd = Cli.Wrap("/bin/bash")
-            .WithWorkingDirectory(Path.Combine(location, "piper"))
-            .WithArguments(
-                $"-c \"echo '{sanitizedText}' | ./piper -m en-us-amy-low.onnx --output_file {outputFilePath}\"");
+   // Sanitize the input text
+   string sanitizedText = System.Net.WebUtility.HtmlEncode(request.Text);
 
-        await cmd.ExecuteBufferedAsync();
-    }
-    catch (Exception e)
-    {
-        // Log the error for debug purposes
-        Console.Error.WriteLine(e.Message);
-        return Results.Problem("An error occurred while generating the audio.");
-    }
+   try
+   {
+       Command cmd = Cli.Wrap("/bin/bash")
+           .WithWorkingDirectory(Path.Combine(location, "piper"))
+           .WithArguments(
+               $"-c \"echo '{sanitizedText}' | ./piper -m en-us-amy-low.onnx --output_file {outputFilePath}\"");
 
-    DeleteOnCloseStream fileStream;
-    try
-    {
-        fileStream = new DeleteOnCloseStream(outputFilePath, FileMode.Open);
-    }
-    catch (Exception e)
-    {
-        // Log the error for debug purposes
-        Console.Error.WriteLine(e.Message);
-        return Results.Problem("An error occurred while reading the audio file.");
-    }
+       await cmd.ExecuteBufferedAsync();
+   }
+   catch (Exception e)
+   {
+       // Log the error for debug purposes
+       logger.LogError(e, "An error occurred while generating the audio");
+       return Results.Problem("An error occurred while generating the audio.");
+   }
 
-    return Results.Stream(fileStream, "audio/wav");
+   DeleteOnCloseStream fileStream;
+   try
+   {
+       fileStream = new DeleteOnCloseStream(outputFilePath, FileMode.Open);
+   }
+   catch (Exception e)
+   {
+       // Log the error for debug purposes
+       logger.LogError(e, "An error occurred while reading the audio file");
+       return Results.Problem("An error occurred while reading the audio file.");
+   }
+
+   return Results.Stream(fileStream, "audio/wav");
 });
 
 app.UseCors(policyBuilder =>
