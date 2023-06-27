@@ -20,7 +20,9 @@
 @using Reader.Tools
 @using TiktokenSharp
 @using System.Net.Http.Headers
+@using Microsoft.Extensions.Options
 @inject NavigationManager NavigationManager
+@inject IOptions<TextToSpeechApiSettings> TextToSpeechApiSettings
 
 <PageTitle>Reader</PageTitle>
 
@@ -222,7 +224,11 @@
     {
         try
         {
-            const string url = "https://45.146.164.32:5446/TextToSpeech";
+            string? url = TextToSpeechApiSettings.Value.Url;
+            if (url == null)
+            {
+                return;
+            }
             
             StringBuilder builder = new(CurrentPage!.Sentences.Count);
             builder.AppendJoin(' ', CurrentPage.Sentences.Select(sentence => sentence.ToString().Replace("written", "").Replace("'", "’")));

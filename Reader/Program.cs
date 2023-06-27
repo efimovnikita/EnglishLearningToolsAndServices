@@ -10,6 +10,7 @@ builder.Services.AddServerSideBlazor().AddHubOptions(options => {
 });
 builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 builder.WebHost.UseUrls(urls: new[] { "http://*:5000", "https://*:5001" });
+builder.Services.Configure<TextToSpeechApiSettings>(builder.Configuration.GetSection("TextToSpeechApi"));
 
 WebApplication app = builder.Build();
 
