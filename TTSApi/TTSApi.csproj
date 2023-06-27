@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <UserSecretsId>25bdf2ed-abf4-49ea-8fc0-1c2f62df7d24</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\.dockerignore">
+      <Link>.dockerignore</Link>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="piper.zip" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="CliWrap">
+      <HintPath>..\..\..\.nuget\packages\cliwrap\3.6.1\lib\netcoreapp3.0\CliWrap.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
