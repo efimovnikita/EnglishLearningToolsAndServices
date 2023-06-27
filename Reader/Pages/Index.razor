@@ -16,8 +16,10 @@
 @using iText.Kernel.Pdf.Canvas.Parser
 @using iText.Kernel.Pdf.Canvas.Parser.Listener
 @using System.Reflection
+@using System.Text.Json
 @using Reader.Tools
 @using TiktokenSharp
+@using System.Net.Http.Headers
 @inject NavigationManager NavigationManager
 
 <PageTitle>Reader</PageTitle>
@@ -99,7 +101,7 @@
             </button>
         </div>
     }
-    <div id="buttons-container" class="flex justify-center items-center mt-2.5 gap-[10px]">
+    <div id="buttons-container" class="flex justify-center items-center mt-2.5 gap-[8px]">
         <ButtonComponent 
             Action="() => ShowSettings = true"
             IconName="settings"
@@ -138,6 +140,12 @@
                 </div>
                 <p class="text-[#5850EC]">S</p>
             </button>
+            
+            <ButtonComponent 
+                Action="PlayAudio" 
+                IconName="waves" 
+                IsDisabled="false" 
+                IsLoading="IsLoading" />
             
             <ButtonComponent 
                 Action="GetDefinitionOrParaphrase" 
@@ -208,6 +216,54 @@
     private bool IsLoading { get; set; }
     
     private Modal Modal { get; set; } = new();
+    
+    private async Task PlayAudio()
+    {
+        try
+        {
+            const string url = "https://45.146.164.32:5446/TextToSpeech";
+            
+            StringBuilder builder = new(CurrentPage!.Sentences.Count);
+            builder.AppendJoin(' ', CurrentPage.Sentences.Select(sentence => sentence.ToString().Replace("written", "")));
+
+            var requestData = new { Text = builder.ToString() };
+
+            JsonSerializerOptions jsonOptions = new()
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            string jsonData = JsonSerializer.Serialize(requestData, jsonOptions);
+            
+            HttpClientHandler httpClientHandler = new()
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+
+            using HttpClient client = new(httpClientHandler);
+        
+            HttpContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Read the audio content from the response stream
+                byte[] audioData = await response.Content.ReadAsByteArrayAsync();
+
+                // Convert the audio data to a base64-encoded string
+                string base64Audio = Convert.ToBase64String(audioData);
+
+                // Invoke JavaScript function to play the audio
+                await JsRuntime.InvokeVoidAsync("playAudio", base64Audio);
+            }
+        }
+        catch
+        {
+            // ignored
+        }
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
