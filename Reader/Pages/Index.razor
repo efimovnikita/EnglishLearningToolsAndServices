@@ -145,7 +145,7 @@
                 Action="PlayAudio" 
                 IconName="waves" 
                 IsDisabled="false" 
-                IsLoading="IsLoading" />
+                IsLoading="IsPlayAudioLoading" />
             
             <ButtonComponent 
                 Action="GetDefinitionOrParaphrase" 
@@ -214,7 +214,8 @@
     private bool ShowHistory { get; set; }
     private bool ShowSettings { get; set; }
     private bool IsLoading { get; set; }
-    
+    private bool IsPlayAudioLoading { get; set; }
+
     private Modal Modal { get; set; } = new();
     
     private async Task PlayAudio()
@@ -224,7 +225,7 @@
             const string url = "https://45.146.164.32:5446/TextToSpeech";
             
             StringBuilder builder = new(CurrentPage!.Sentences.Count);
-            builder.AppendJoin(' ', CurrentPage.Sentences.Select(sentence => sentence.ToString().Replace("written", "")));
+            builder.AppendJoin(' ', CurrentPage.Sentences.Select(sentence => sentence.ToString().Replace("written", "").Replace("'", "’")));
 
             var requestData = new { Text = builder.ToString() };
 
@@ -244,7 +245,9 @@
             HttpContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
+            IsPlayAudioLoading = true;
             HttpResponseMessage response = await client.PostAsync(url, content);
+            IsPlayAudioLoading = false;
 
             if (response.IsSuccessStatusCode)
             {
@@ -260,7 +263,7 @@
         }
         catch
         {
-            // ignored
+            IsPlayAudioLoading = false;
         }
     }
 
