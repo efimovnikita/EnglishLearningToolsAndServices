@@ -299,208 +299,168 @@
     {
         IBrowserFile file = e.File;
         string extension = Path.GetExtension(file.Name);
-        if (extension.Contains("epub"))
-        {
-            try
-            {
-                IsLoading = true;
-
-                using MemoryStream memoryStream = new();
-                await file.OpenReadStream(30000000).CopyToAsync(memoryStream);
-                memoryStream.Seek(0, SeekOrigin.Begin);
-
-                EpubBook book = await EpubReader.ReadBookAsync(memoryStream);
-                RawTextAreaContent = "";
-                foreach (EpubTextContentFile textContentFile in book.ReadingOrder)
-                {
-                    HtmlDocument htmlDocument = new();
-                    htmlDocument.LoadHtml(textContentFile.Content);
-                    StringBuilder sb = new();
-                    foreach (HtmlNode node in htmlDocument.DocumentNode.SelectNodes("//text()"))
-                    {
-                        sb.AppendLine(node.InnerText.Trim());
-                    }
-                    string contentText = sb.ToString();
-                    RawTextAreaContent += contentText;
-                }
-                IsLoading = false;
-            }
-            catch (Exception ex)
-            {
-                Modal.Title = "Error";
-                Modal.TextContent = ex.Message;
-                Modal.ModalType = ModalType.Error;
-                ShowModal = true;
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
         
-        if (extension.Contains("pdf"))
-        {
-            try
-            {
-                IsLoading = true;
-
-                using MemoryStream memoryStream = new();
-                await file.OpenReadStream(30000000).CopyToAsync(memoryStream);
-                memoryStream.Seek(0, SeekOrigin.Begin);
-
-                PdfReader reader = new(memoryStream);
-                PdfDocument pdfDocument = new(reader);
-                
-                StringBuilder content = new();
-
-                RawTextAreaContent = "";
-
-                int pages = pdfDocument.GetNumberOfPages();
-                for (int i = 1; i <= pages; i++)
-                {
-                    PdfPage? page = pdfDocument.GetPage(i);
-                    string? text = PdfTextExtractor.GetTextFromPage(page, new SimpleTextExtractionStrategy());
-                    content.AppendLine(text);
-                }
-
-                RawTextAreaContent = content.ToString();
-                
-                IsLoading = false;
-            }
-            catch (Exception ex)
-            {
-                Modal.Title = "Error";
-                Modal.TextContent = ex.Message;
-                Modal.ModalType = ModalType.Error;
-                ShowModal = true;
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
-        
-        if (extension.Contains("txt"))
-        {
-            try
-            {
-                IsLoading = true;
-
-                using MemoryStream memoryStream = new();
-                await file.OpenReadStream(30000000).CopyToAsync(memoryStream);
-                memoryStream.Seek(0, SeekOrigin.Begin);
-
-                RawTextAreaContent = "";
-                
-                using StreamReader reader = new(memoryStream, Encoding.UTF8);
-                string content = await reader.ReadToEndAsync();
-
-                RawTextAreaContent = content;
-                
-                IsLoading = false;
-            }
-            catch (Exception ex)
-            {
-                Modal.Title = "Error";
-                Modal.TextContent = ex.Message;
-                Modal.ModalType = ModalType.Error;
-                ShowModal = true;
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
-        
-        if (extension.Contains("fb2"))
-        {
-            try
-            {
-                IsLoading = true;
-
-                using MemoryStream memoryStream = new();
-                await file.OpenReadStream(30000000).CopyToAsync(memoryStream);
-                memoryStream.Seek(0, SeekOrigin.Begin);
-
-                RawTextAreaContent = "";
-                
-                Fb2Document fb2Document = new();
-                
-                fb2Document.Load(memoryStream);
-
-                StringBuilder sb = new();
-                foreach (BookBody body in fb2Document.Bodies)
-                {
-                    foreach (Fb2Node node in body.Content)
-                    {
-                        string? s = node.ToString();
-                        if (String.IsNullOrWhiteSpace(s) == false)
-                        {
-                            sb.AppendLine(s);
-                        }
-                    }
-                }
-
-                RawTextAreaContent = sb.ToString();
-
-                IsLoading = false;
-            }
-            catch (Exception ex)
-            {
-                Modal.Title = "Error";
-                Modal.TextContent = ex.Message;
-                Modal.ModalType = ModalType.Error;
-                ShowModal = true;
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
-
-        if (extension.Contains("mp3") || extension.Contains("wav"))
+        try
         {
             IsLoading = true;
-
-            Assembly currentAssembly = Assembly.GetExecutingAssembly();
-            string audioFilePath = $"{new FileInfo(currentAssembly.Location).Directory!.FullName}/{Guid.NewGuid()}{extension}";
-            
-            try
+    
+            using MemoryStream memoryStream = new();
+            await file.OpenReadStream(30000000).CopyToAsync(memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+    
+            if (extension.Contains("epub"))
             {
-                if (String.IsNullOrWhiteSpace(OpenAiKey))
-                {
-                    throw new Exception("You must provide OpenAI API key (https://platform.openai.com/account/api-keys). Open settings and add the key.");
-                }
-                
-                // Save the file to the temporary location
-                await using FileStream fileStream = new(audioFilePath, FileMode.Create);
-                await file.OpenReadStream(30000000).CopyToAsync(fileStream);
-
-                AudioTranscriber transcriber = new(OpenAiKey);
-                RawTextAreaContent = await transcriber.TranscribeAudio(audioFilePath);
+                await HandleEpubFileAsync(memoryStream);
             }
-            catch (Exception ex)
+            else if (extension.Contains("pdf"))
             {
-                Modal.Title = "Error";
-                Modal.TextContent = ex.Message;
-                Modal.ModalType = ModalType.Error;
-                ShowModal = true;
+                await HandlePdfFileAsync(memoryStream);
             }
-            finally
+            else if (extension.Contains("txt"))
             {
-                DeleteTempFile();
+                await HandleTxtFileAsync(memoryStream);
             }
-            
-            DeleteTempFile();
-
-            void DeleteTempFile()
+            else if (extension.Contains("fb2"))
             {
-                // Delete the temporary file
-                File.Delete(audioFilePath);
-
-                IsLoading = false;
+                await HandleFb2FileAsync(memoryStream);
+            }
+            else if (extension.Contains("mp3") || extension.Contains("wav"))
+            {
+                await HandleAudioFileAsync(file, extension);
+            }
+            else
+            {
+                throw new Exception("Unsupported file type.");
             }
         }
+        catch (Exception ex)
+        {
+            Modal.Title = "Error";
+            Modal.TextContent = ex.Message;
+            Modal.ModalType = ModalType.Error;
+            ShowModal = true;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    
+    private async Task HandleEpubFileAsync(MemoryStream memoryStream)
+    {
+        EpubBook book = await EpubReader.ReadBookAsync(memoryStream);
+        RawTextAreaContent = "";
+        foreach (EpubTextContentFile textContentFile in book.ReadingOrder)
+        {
+            HtmlDocument htmlDocument = new();
+            htmlDocument.LoadHtml(textContentFile.Content);
+            StringBuilder sb = new();
+            foreach (HtmlNode node in htmlDocument.DocumentNode.SelectNodes("//text()"))
+            {
+                sb.AppendLine(node.InnerText.Trim());
+            }
+            string contentText = sb.ToString();
+            RawTextAreaContent += contentText;
+        }  
+    }
+    
+    private Task HandlePdfFileAsync(MemoryStream memoryStream)
+    {
+        PdfReader reader = new(memoryStream);
+        PdfDocument pdfDocument = new(reader);
+                
+        StringBuilder content = new();
+
+        RawTextAreaContent = "";
+
+        int pages = pdfDocument.GetNumberOfPages();
+        for (int i = 1; i <= pages; i++)
+        {
+            PdfPage? page = pdfDocument.GetPage(i);
+            string? text = PdfTextExtractor.GetTextFromPage(page, new SimpleTextExtractionStrategy());
+            content.AppendLine(text);
+        }
+
+        RawTextAreaContent = content.ToString();
+        return Task.CompletedTask;
+    }
+    
+    private async Task HandleTxtFileAsync(MemoryStream memoryStream)
+    {
+        RawTextAreaContent = "";
+                
+        using StreamReader reader = new(memoryStream, Encoding.UTF8);
+        string content = await reader.ReadToEndAsync();
+
+        RawTextAreaContent = content;
+    }
+    
+    private Task HandleFb2FileAsync(MemoryStream memoryStream)
+    {
+        RawTextAreaContent = "";
+                
+        Fb2Document fb2Document = new();
+                
+        fb2Document.Load(memoryStream);
+
+        StringBuilder sb = new();
+        foreach (BookBody body in fb2Document.Bodies)
+        {
+            foreach (Fb2Node node in body.Content)
+            {
+                string? s = node.ToString();
+                if (String.IsNullOrWhiteSpace(s) == false)
+                {
+                    sb.AppendLine(s);
+                }
+            }
+        }
+
+        RawTextAreaContent = sb.ToString();
+        return Task.CompletedTask;
+    }
+    
+    private async Task HandleAudioFileAsync(IBrowserFile file, string extension)
+    {
+        Assembly currentAssembly = Assembly.GetExecutingAssembly();
+        string audioFilePath = $"{new FileInfo(currentAssembly.Location).Directory!.FullName}/{Guid.NewGuid()}{extension}";
+        
+        try
+        {
+            if (String.IsNullOrWhiteSpace(OpenAiKey))
+            {
+                throw new Exception("You must provide OpenAI API key (https://platform.openai.com/account/api-keys). Open settings and add the key.");
+            }
+            
+            // Save the file to the temporary location
+            await using FileStream fileStream = new(audioFilePath, FileMode.Create);
+            await file.OpenReadStream(30000000).CopyToAsync(fileStream);
+
+            AudioTranscriber transcriber = new(OpenAiKey);
+            RawTextAreaContent = await transcriber.TranscribeAudio(audioFilePath);
+        }
+        catch (Exception ex)
+        {
+            Modal.Title = "Error";
+            Modal.TextContent = ex.Message;
+            Modal.ModalType = ModalType.Error;
+            ShowModal = true;
+        }
+        finally
+        {
+            DeleteTempFile(audioFilePath);
+        }
+            
+        DeleteTempFile(audioFilePath);
+        return;
+
+        void DeleteTempFile(string path)
+        {
+            // Delete the temporary file
+            File.Delete(path);
+
+            IsLoading = false;
+        }    
     }
 
     private List<Token> History
