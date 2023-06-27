@@ -231,7 +231,7 @@
             }
             
             StringBuilder builder = new(CurrentPage!.Sentences.Count);
-            builder.AppendJoin(' ', CurrentPage.Sentences.Select(sentence => sentence.ToString().Replace("written", "").Replace("'", "’")));
+            builder.AppendJoin(' ', CurrentPage.Sentences.Select(sentence => ReplaceApostrophe(sentence.ToString())));
 
             var requestData = new { Text = builder.ToString() };
 
@@ -272,7 +272,8 @@
             IsPlayAudioLoading = false;
         }
     }
-
+    
+    public static string ReplaceApostrophe(string input) => input.Replace("'", "’");
 
     protected override async Task OnInitializedAsync()
     {
