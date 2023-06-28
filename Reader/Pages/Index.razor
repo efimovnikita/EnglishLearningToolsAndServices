@@ -247,7 +247,9 @@
             };
 
             using HttpClient client = new(httpClientHandler);
-        
+
+            client.Timeout = TimeSpan.FromMinutes(4);
+
             HttpContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
@@ -267,7 +269,14 @@
                 await JsRuntime.InvokeVoidAsync("playAudio", base64Audio);
             }
         }
-        catch
+        catch(Exception ex)
+        {
+            Modal.Title = "Error";
+            Modal.TextContent = ex.Message;
+            Modal.ModalType = ModalType.Error;
+            ShowModal = true;
+        }
+        finally
         {
             IsPlayAudioLoading = false;
         }
