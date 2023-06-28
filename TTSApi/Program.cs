@@ -19,7 +19,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _, ILogger logger) =>
+app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _, ILogger<Program> logger) =>
 {
    if (String.IsNullOrEmpty(request.Text))
    {
