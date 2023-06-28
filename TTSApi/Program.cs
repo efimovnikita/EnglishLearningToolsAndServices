@@ -24,6 +24,8 @@ builder.Services.AddSingleton(p =>
 {
    var httpClientFactory = p.GetRequiredService<IHttpClientFactory>();
    var client = httpClientFactory.CreateClient("SaluteSpeechServiceClient");
+   client.Timeout = TimeSpan.FromMinutes(4);
+
    return new SaluteSpeechService(client, apiKey);
 });
 
