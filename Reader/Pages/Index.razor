@@ -257,6 +257,8 @@
             HttpResponseMessage response = await client.PostAsync(url, content);
             IsPlayAudioLoading = false;
 
+            response.EnsureSuccessStatusCode();
+
             if (response.IsSuccessStatusCode)
             {
                 // Read the audio content from the response stream
