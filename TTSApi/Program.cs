@@ -1,13 +1,31 @@
 using System.Reflection;
-using CliWrap;
-using CliWrap.Buffered;
-using TTSApi;
+using TTSApi.Models;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer(); 
 builder.Services.AddSwaggerGen(); 
 builder.Services.AddCors();
+
+string? apiKey = Environment.GetEnvironmentVariable("API_KEY");
+
+if (String.IsNullOrEmpty(apiKey))
+{
+    throw new InvalidOperationException("API_KEY environment variables are not set");
+}
+
+builder.Services.AddHttpClient("SaluteSpeechServiceClient")
+           .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+{
+   ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+});
+       
+builder.Services.AddSingleton(p =>
+{
+   var httpClientFactory = p.GetRequiredService<IHttpClientFactory>();
+   var client = httpClientFactory.CreateClient("SaluteSpeechServiceClient");
+   return new SaluteSpeechService(client, apiKey);
+});
 
 builder.WebHost.UseUrls("http://*:5000", "https://*:5001");
 
@@ -19,7 +37,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _, ILogger<Program> logger) =>
+app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _, ILogger<Program> logger, SaluteSpeechService speechService) =>
 {
    if (String.IsNullOrEmpty(request.Text))
    {
@@ -34,12 +52,7 @@ app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _, 
 
    try
    {
-       Command cmd = Cli.Wrap("/bin/bash")
-           .WithWorkingDirectory(Path.Combine(location, "piper"))
-           .WithArguments(
-               $"-c \"echo '{sanitizedText}' | ./piper -m en-us-amy-low.onnx --output_file {outputFilePath}\"");
-
-       await cmd.ExecuteBufferedAsync();
+       await speechService.SynthesizeTextToFileAsync(sanitizedText, outputFilePath);
    }
    catch (Exception e)
    {

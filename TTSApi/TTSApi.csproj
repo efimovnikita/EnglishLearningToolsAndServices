@@ -18,14 +18,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="piper.zip" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="CliWrap">
-      <HintPath>..\..\..\.nuget\packages\cliwrap\3.6.1\lib\netcoreapp3.0\CliWrap.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

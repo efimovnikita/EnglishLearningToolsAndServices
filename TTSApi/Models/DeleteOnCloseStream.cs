@@ -1,4 +1,4 @@
-namespace TTSApi;
+namespace TTSApi.Models;
 
 public class DeleteOnCloseStream : FileStream
 {
