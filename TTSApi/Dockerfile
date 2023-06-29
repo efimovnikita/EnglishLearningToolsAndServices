@@ -13,16 +13,18 @@ RUN dotnet restore
 COPY . ./
 RUN dotnet publish -c Release -o out
 
+COPY piper.tar.gz ./
+RUN mkdir -p piper && tar -xzvf piper.tar.gz -C out && rm piper.tar.gz
+
+COPY voice.tar.gz ./
+RUN tar -xzvf voice.tar.gz -C out/piper && rm voice.tar.gz
+
 # Generate the runtime image
-FROM mcr.microsoft.com/dotnet/sdk:6.0
+FROM mcr.microsoft.com/dotnet/aspnet:6.0
 
 WORKDIR /app
 COPY --from=build-env /app/out .
 EXPOSE 80
-EXPOSE 443
-
-RUN dotnet dev-certs https --clean
-RUN dotnet dev-certs https --verbose
 
 # Define the entrypoint, replace 'TTSApi.dll' with your own .dll file
 ENTRYPOINT ["dotnet", "TTSApi.dll"]

@@ -535,7 +535,7 @@
 
             List<Sentence> sentencesList = TokenizerAndSentenceExtractor.GetSentencesList(RawTextAreaContent);
 
-            List<List<Sentence>> chunks = SplitIntoChunks(sentencesList, 20);
+            List<List<Sentence>> chunks = SplitIntoChunks(sentencesList, 30);
             for (int i = 0; i < chunks.Count; i++)
             {
                 Pages.Add(new Page {Sentences = chunks[i], PageNumber = i + 1});
