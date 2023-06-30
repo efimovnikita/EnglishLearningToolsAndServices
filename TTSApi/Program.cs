@@ -55,7 +55,10 @@ app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _, 
    DeleteOnCloseStream fileStream;
    try
    {
-       fileStream = new DeleteOnCloseStream(outputFilePath, FileMode.Open);
+       // Obtaining an instance of ILogger specific to the "DeleteOnCloseStream" type through dependency injection.
+       ILogger<DeleteOnCloseStream> deleteOnCloseStreamLogger =
+           app.Services.GetRequiredService<ILogger<DeleteOnCloseStream>>();
+       fileStream = new DeleteOnCloseStream(deleteOnCloseStreamLogger, outputFilePath, FileMode.Open);
        logger.LogInformation("Successfully opened the generated audio file");
    }
    catch (Exception e)
