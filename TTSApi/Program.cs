@@ -21,8 +21,11 @@ if (app.Environment.IsDevelopment())
 
 app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _, ILogger<Program> logger) =>
 {
+    logger.LogInformation("Received a new TextToSpeech request");
+    
    if (String.IsNullOrEmpty(request.Text))
    {
+       logger.LogWarning("Received request with empty text");
        return Results.BadRequest("Text is required.");
    }
 
@@ -31,6 +34,7 @@ app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _, 
 
    // Sanitize the input text
    string sanitizedText = System.Net.WebUtility.HtmlEncode(request.Text);
+   logger.LogInformation("Text has been successfully sanitized");
 
    try
    {
@@ -39,11 +43,12 @@ app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _, 
            .WithArguments(
                $"-c \"echo '{sanitizedText}' | ./piper -m en-us-amy-low.onnx --output_file {outputFilePath}\"");
        await cmd.ExecuteBufferedAsync();
+       logger.LogInformation("Successfully generated audio at {Path}", outputFilePath);
    }
-   catch (Exception e)
+   catch (Exception exception)
    {
        // Log the error for debug purposes
-       logger.LogError(e, "An error occurred while generating the audio");
+       logger.LogError(exception, "An error occurred while generating the audio");
        return Results.Problem("An error occurred while generating the audio.");
    }
 
@@ -51,6 +56,7 @@ app.MapPost("/TextToSpeech", async (TextRequest request, IWebHostEnvironment _, 
    try
    {
        fileStream = new DeleteOnCloseStream(outputFilePath, FileMode.Open);
+       logger.LogInformation("Successfully opened the generated audio file");
    }
    catch (Exception e)
    {
