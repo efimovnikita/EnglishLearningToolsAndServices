@@ -49,10 +49,6 @@
                 <p class="">OpenAI&nbsp;API&nbsp;key:</p>
                 <input @bind="OpenAiapiKey" @oninput="UpdateOpenAiKey" class="bg-[#F0F5FF] border-[1px] border-[#B4C6FC] rounded-[10px] p-[10px]" type="text" placeholder="Key..." />
             </div>
-            <div class="flex flex-col justify-start items-center gap-[10px]">
-                <p class="">ElevenLabs&nbsp;API&nbsp;key:</p>
-                <input @bind="ElevenLabsApiKey" @oninput="UpdateOElevenLabsApiKey" class="bg-[#F0F5FF] border-[1px] border-[#B4C6FC] rounded-[10px] p-[10px]" type="text" placeholder="Key..." />
-            </div>
         </div>
     </div>
 </div>
@@ -66,14 +62,8 @@
     public string OpenAiapiKey { get; set; } = "";
     
     [Parameter]
-    public string ElevenLabsApiKey { get; set; } = "";
-    
-    [Parameter]
     public EventCallback<string> OpenAiKeyChanged { get; set; }
     
-    [Parameter]
-    public EventCallback<string> ElevenLabsApiKeyChanged { get; set; }
-
     [Parameter]
     public ModalType ModalType { get; set; } = ModalType.Regular;
     
@@ -83,11 +73,5 @@
     {
         OpenAiapiKey = e.Value!.ToString()!;
         await OpenAiKeyChanged.InvokeAsync(OpenAiapiKey);
-    }
-
-    private async Task UpdateOElevenLabsApiKey(ChangeEventArgs e)
-    {
-        ElevenLabsApiKey = e.Value!.ToString()!;
-        await ElevenLabsApiKeyChanged.InvokeAsync(ElevenLabsApiKey);
     }
 }

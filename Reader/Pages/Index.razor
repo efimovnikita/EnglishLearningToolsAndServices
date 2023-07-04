@@ -160,7 +160,7 @@
 
 @if (ShowModal)
 {
-    <ModalWindow Title="@Modal.Title" Content="@Modal.TextContent" ModalType="@Modal.ModalType" ElevenLabsApiKey="@ElevenLabsApiKey" CloseModal="() => ShowModal = false" Token="SelectedWord" />
+    <ModalWindow Title="@Modal.Title" Content="@Modal.TextContent" ModalType="@Modal.ModalType" CloseModal="() => ShowModal = false" Token="SelectedWord" />
 }
 
 @if (ShowHistory)
@@ -173,9 +173,7 @@
     <ModalSettingsWindow 
         Title="Settings" 
         OpenAiKeyChanged="SetOpenAiKey" 
-        ElevenLabsApiKeyChanged="SetElevenLabsApiKey" 
         OpenAiapiKey="@OpenAiKey" 
-        ElevenLabsApiKey="@ElevenLabsApiKey" 
         ModalType="ModalType.Regular" 
         CloseModal="() => ShowSettings = false" />
 }
@@ -189,7 +187,6 @@
     private Token? SelectedWord { get; set; }
     private string SharedText { get; set; } = "";
     [Parameter] public string? OpenAiKey { get; set; }
-    public string? ElevenLabsApiKey { get; set; }
     private bool IsGetDefinitionButtonDisabled
     {
         get {
@@ -324,7 +321,6 @@
         // Get data from local storage
         string inputData = await LocalStorage.GetItemAsync(LocalStorageInputName);
         string openAiKey = await LocalStorage.GetItemAsync(LocalStorageKeyName);
-        string elevenLabsKey = await LocalStorage.GetItemAsync(LocalStorageElevenLabsKeyName);
 
         Uri uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         Dictionary<string, StringValues> query = QueryHelpers.ParseQuery(uri.Query);
@@ -332,7 +328,6 @@
         SharedText = query.TryGetValue("text", out StringValues text) ? text : "";
         RawTextAreaContent = String.IsNullOrWhiteSpace(SharedText) == false ? SharedText : inputData;
         OpenAiKey = openAiKey;
-        ElevenLabsApiKey = elevenLabsKey;
     }
     
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
@@ -718,20 +713,11 @@
 
     private const string LocalStorageInputName = "input";
     private const string LocalStorageKeyName = "apikey";
-    private const string LocalStorageElevenLabsKeyName = "elevenlabsapikey";
-
     private async Task SetOpenAiKey(string s)
     {
         await LocalStorage.SetItemAsync(LocalStorageKeyName, s);
         OpenAiKey = s;
     }
-    
-    private async Task SetElevenLabsApiKey(string s)
-    {
-        await LocalStorage.SetItemAsync(LocalStorageElevenLabsKeyName, s);
-        ElevenLabsApiKey = s;
-    }
-
     private void OnChangePageNumber(ChangeEventArgs obj)
     {
         if (obj.Value == null)
