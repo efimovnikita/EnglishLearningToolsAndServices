@@ -229,9 +229,14 @@
             {
                 return;
             }
+
+            if (CurrentPage == null)
+            {
+                return;
+            }
             
-            StringBuilder builder = new(CurrentPage!.Sentences.Count);
-            builder.AppendJoin(' ', CurrentPage.Sentences.Select(sentence => ReplaceApostrophe(sentence.ToString())));
+            StringBuilder builder = new();
+            PrepareRequestTextContext(builder);
 
             var requestData = new { Text = builder.ToString() };
 
@@ -283,7 +288,30 @@
             IsPlayAudioLoading = false;
         }
     }
-    
+
+    private void PrepareRequestTextContext(StringBuilder builder)
+    {
+        switch (SelectedSentences.Count)
+        {
+            case 0 when SelectedWord == null:
+            {
+                if (CurrentPage != null)
+                {
+                    builder.AppendJoin(' ', CurrentPage.Sentences.Select(sentence => ReplaceApostrophe(sentence.ToString())));
+                }
+                break;
+            }
+            case > 0:
+                builder.AppendJoin(' ', SelectedSentences.Select(sentence => ReplaceApostrophe(sentence.ToString())));
+                break;
+        }
+
+        if (SelectedWord != null)
+        {
+            builder.Append(SelectedWord.Text);
+        }
+    }
+
     public static string ReplaceApostrophe(string input) => input.Replace("'", "’");
 
     protected override async Task OnInitializedAsync()
