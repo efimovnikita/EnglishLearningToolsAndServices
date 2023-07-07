@@ -471,8 +471,8 @@
             await using FileStream fileStream = new(audioFilePath, FileMode.Create);
             await file.OpenReadStream(30000000).CopyToAsync(fileStream);
 
-            AudioTranscriber transcriber = new(OpenAiKey);
-            RawTextAreaContent = await transcriber.TranscribeAudio(audioFilePath);
+            AudioTranscriberAndTranslator transcriberAndTranslator = new(OpenAiKey);
+            RawTextAreaContent = await transcriberAndTranslator.TranscribeAudio(audioFilePath);
         }
         catch (Exception ex)
         {
