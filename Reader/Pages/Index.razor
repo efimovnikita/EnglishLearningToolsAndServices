@@ -36,7 +36,10 @@
 <main class="@mainStyle">
     @if (CurrentPage == null)
     {
-        <textarea @bind="RawTextAreaContent" class="resize-none	scrollbar-thin scrollbar-thumb-[#B4C6FC] scrollbar-track-[#E5EDFF] bg-[#F0F5FF] w-full h-full rounded-[10px] border-dashed border-[1px] border-[#B4C6FC] p-2.5 text-[#374151] text-[16px]"></textarea>
+        <textarea 
+            @bind="RawTextAreaContent" 
+            placeholder="Paste text, website link, youtube link ..."   
+            class="resize-none scrollbar-thin scrollbar-thumb-[#B4C6FC] scrollbar-track-[#E5EDFF] bg-[#F0F5FF] w-full h-full rounded-[10px] border-dashed border-[1px] border-[#B4C6FC] p-2.5 text-[#374151] text-[16px]"></textarea>
     }
     else
     {
