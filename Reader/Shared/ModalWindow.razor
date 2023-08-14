@@ -44,8 +44,8 @@
     }
 }
 
-<div id="modal" class="@modalStyle">
-    <div id="modal-window" class="@modalWindowStyle">
+<div id="modal" class="@modalStyle" @onclick="HandleModalClick">
+    <div id="modal-window" class="@modalWindowStyle" @onclick:stopPropagation>
         <div id="title" class="flex justify-between p-[5px]">
             <p class="@titleTextStyle">@Title</p>
             @if (this.ModalType == ModalType.Regular && Token != null)
@@ -71,7 +71,11 @@
 </div>
 
 @code {
-
+    private void HandleModalClick()
+    {
+        CloseModal.InvokeAsync(null);
+    }
+    
     [Parameter]
     public string Title { get; set; } = "";
 
