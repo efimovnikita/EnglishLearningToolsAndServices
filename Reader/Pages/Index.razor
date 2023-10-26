@@ -343,33 +343,20 @@
             IsLoading = true;
     
             using MemoryStream memoryStream = new();
-            await file.OpenReadStream(30000000).CopyToAsync(memoryStream);
+            
+            const long maxFileSizeInBytes = 100 * 1024 * 1024;
+            await file.OpenReadStream(maxFileSizeInBytes).CopyToAsync(memoryStream);
             memoryStream.Seek(0, SeekOrigin.Begin);
-    
-            if (extension.Contains("epub"))
+
+            await (extension switch
             {
-                await HandleEpubFileAsync(memoryStream);
-            }
-            else if (extension.Contains("pdf"))
-            {
-                await HandlePdfFileAsync(memoryStream);
-            }
-            else if (extension.Contains("txt"))
-            {
-                await HandleTxtFileAsync(memoryStream);
-            }
-            else if (extension.Contains("fb2"))
-            {
-                await HandleFb2FileAsync(memoryStream);
-            }
-            else if (extension.Contains("mp3") || extension.Contains("wav"))
-            {
-                await HandleAudioFileAsync(file, extension);
-            }
-            else
-            {
-                throw new Exception("Unsupported file type.");
-            }
+                _ when extension.Contains("epub") => HandleEpubFileAsync(memoryStream),
+                _ when extension.Contains("pdf") => HandlePdfFileAsync(memoryStream),
+                _ when extension.Contains("txt") => HandleTxtFileAsync(memoryStream),
+                _ when extension.Contains("fb2") => HandleFb2FileAsync(memoryStream),
+                _ when extension.Contains("mp3") || extension.Contains("wav") => HandleAudioFileAsync(file, extension),
+                _ => throw new Exception("Unsupported file type.")
+                });
         }
         catch (Exception ex)
         {
@@ -469,11 +456,14 @@
             {
                 throw new Exception("You must provide OpenAI API key (https://platform.openai.com/account/api-keys). Open settings and add the key.");
             }
-            
+
             // Save the file to the temporary location
             await using FileStream fileStream = new(audioFilePath, FileMode.Create);
-            await file.OpenReadStream(30000000).CopyToAsync(fileStream);
-
+            
+            // set maximum allowed file size to 100MB
+            const long maxFileSizeInBytes = 100 * 1024 * 1024;
+            await file.OpenReadStream(maxFileSizeInBytes).CopyToAsync(fileStream);
+            
             AudioTranscriberAndTranslator transcriberAndTranslator = new(OpenAiKey);
             RawTextAreaContent = await transcriberAndTranslator.TranscribeAudio(audioFilePath);
         }
