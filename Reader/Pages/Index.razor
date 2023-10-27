@@ -676,7 +676,7 @@
                 string synonymsResponse = await chat.GetResponseFromChatbotAsync();
 
                 SelectedWord.Definition = $"{response}";
-                SelectedWord.Definition += $"\n{synonymsResponse}";
+                SelectedWord.Definition += $"<br/>{synonymsResponse}";
 
                 Modal.Title = "Definition";
                 Modal.TextContent = SelectedWord.Definition;
@@ -776,6 +776,11 @@
         string baseUri = $"{uri.Scheme}://{uri.Authority}/";
         string urlPath = $"{baseUri}db/{guid}";
         await JsRuntime.InvokeVoidAsync("copyToClipboard", urlPath);
+        
+        Modal.Title = "Link copied";
+        Modal.TextContent = "Link was copied to your clipboard.<br/>You can send it to anyone...";
+        Modal.ModalType = ModalType.Regular;
+        ShowModal = true;
     }
 
     private static string GetDbFilePath()
