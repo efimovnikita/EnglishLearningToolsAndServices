@@ -12,6 +12,7 @@
     <PackageReference Include="Fb2.Document" Version="2.2.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
     <PackageReference Include="itext7" Version="7.2.5" />
+    <PackageReference Include="LiteDB" Version="5.0.17" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenAI" Version="1.7.2" />
     <PackageReference Include="OpenNLP.NET" Version="1.9.4.1" />

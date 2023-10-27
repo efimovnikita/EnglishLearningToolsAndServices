@@ -1,6 +1,7 @@
 ﻿@page "/"
 @page "/key/{openAiKey}"
 @page "/share"
+@page "/db/{textId}"
 
 @inject IJSRuntime JsRuntime
 @inject ILocalStorageService LocalStorage
@@ -20,7 +21,9 @@
 @using Reader.Tools
 @using TiktokenSharp
 @using System.Net.Http.Headers
+@using LiteDB
 @using Microsoft.Extensions.Options
+@using JsonSerializer = System.Text.Json.JsonSerializer
 @inject NavigationManager NavigationManager
 @inject IOptions<TextToSpeechApiSettings> TextToSpeechApiSettings
 
@@ -128,9 +131,9 @@
         else
         {
             <ButtonComponent 
-                Action="() => ShowHistory = true"
-                IconName="history"
-                IsDisabled="@(History.Count == 0)"
+                Action="SaveAndShareLink"
+                IconName="share"
+                IsDisabled="false"
                 IsLoading="false"/>
 
             string style = "flex items-center justify-start w-[50px] h-[26px] bg-[#6875F5] hover:bg-[#5145CD] rounded-full px-[3px]";
@@ -190,6 +193,7 @@
     private Token? SelectedWord { get; set; }
     private string SharedText { get; set; } = "";
     [Parameter] public string? OpenAiKey { get; set; }
+    [Parameter] public string? TextId { get; set; }
     private bool IsGetDefinitionButtonDisabled
     {
         get {
@@ -320,9 +324,18 @@
         {
             await SetOpenAiKey(OpenAiKey);
         }
+
+        string textFromStorage = GetTextFromDbByGuid(TextId);
+        string inputData;
+        if (String.IsNullOrEmpty(TextId) == false && String.IsNullOrEmpty(textFromStorage) == false)
+        {
+            inputData = textFromStorage;
+        }
+        else
+        {
+            inputData = await LocalStorage.GetItemAsync(LocalStorageInputName);
+        }
         
-        // Get data from local storage
-        string inputData = await LocalStorage.GetItemAsync(LocalStorageInputName);
         string openAiKey = await LocalStorage.GetItemAsync(LocalStorageKeyName);
 
         Uri uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
@@ -745,4 +758,43 @@
     {
         await JsRuntime.InvokeVoidAsync("scrollToTopOfElement", "content-container");
     }
+
+    private async Task SaveAndShareLink()
+    {
+        Guid guid = Guid.NewGuid();
+        StringBuilder stringBuilder = new();
+        Pages.SelectMany(page => page.Sentences).Aggregate(stringBuilder, (builder, sentence) => builder.AppendLine(sentence.ToString()));
+
+        using (LiteDatabase store = new($"Filename={GetDbFilePath()};Connection=Shared;"))
+        {
+            ILiteCollection<StoreTextRecord> collection = store.GetCollection<StoreTextRecord>("Texts");
+            string text = stringBuilder.ToString();
+            collection.Insert(new StoreTextRecord {Id = guid, Text = text});
+        }
+
+        Uri uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        string urlPath = $"{uri}db/{guid}";
+        await JsRuntime.InvokeVoidAsync("copyToClipboard", urlPath);
+    }
+
+    private static string GetDbFilePath()
+    {
+        string? assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        string dbFolderPath = Path.Combine(assemblyFolder!, "db");
+        string dbFilePath = Path.Combine(dbFolderPath, "Store.db");
+        return dbFilePath;
+    }
+
+    public string GetTextFromDbByGuid(string? guidString)
+    {
+        using LiteDatabase store = new($"Filename={GetDbFilePath()};Connection=Shared;");
+        ILiteCollection<StoreTextRecord> collection = store.GetCollection<StoreTextRecord>("Texts");
+        
+        if (guidString == null) return "";
+        
+        Guid guid = new(guidString);
+        StoreTextRecord record = collection.FindById(guid);
+        return record != null ? record.Text : "";
+    }
+    
 }
