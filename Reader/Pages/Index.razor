@@ -773,7 +773,8 @@
         }
 
         Uri uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        string urlPath = $"{uri}db/{guid}";
+        string baseUri = $"{uri.Scheme}://{uri.Authority}/";
+        string urlPath = $"{baseUri}db/{guid}";
         await JsRuntime.InvokeVoidAsync("copyToClipboard", urlPath);
     }
 
