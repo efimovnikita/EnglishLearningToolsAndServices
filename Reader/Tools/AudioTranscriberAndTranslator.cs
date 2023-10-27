@@ -93,7 +93,7 @@ public class AudioTranscriberAndTranslator
         catch
         {
             tempParts.Where(File.Exists).ToList().ForEach(File.Delete);
-            throw;
+            return stringBuilder.ToString();
         }
     }
 }
