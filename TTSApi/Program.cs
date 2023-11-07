@@ -13,7 +13,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors();
 builder.Services.AddHttpContextAccessor();
 
-builder.WebHost.UseUrls("http://localhost:5000");
+builder.WebHost.UseUrls("http://*:5000");
 
 WebApplication app = builder.Build();
 
