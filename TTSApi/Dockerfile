@@ -1,5 +1,5 @@
 ﻿# Use the .NET 6.0 SDK (Software Development Kit) as base image to build our application
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build-env
 
 # Set the working directory
 WORKDIR /app
@@ -20,7 +20,9 @@ COPY voice.tar.gz ./
 RUN tar -xzvf voice.tar.gz -C out/piper && rm voice.tar.gz
 
 # Generate the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine
+
+RUN apk add --no-cache openssl=3.1.4-r0
 
 WORKDIR /app
 COPY --from=build-env /app/out .
