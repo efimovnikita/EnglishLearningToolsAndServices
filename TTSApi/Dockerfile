@@ -22,8 +22,6 @@ RUN tar -xzvf voice.tar.gz -C out/piper && rm voice.tar.gz
 # Generate the runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine
 
-RUN apk add --no-cache openssl=3.1.4-r0
-
 WORKDIR /app
 COPY --from=build-env /app/out .
 EXPOSE 80
