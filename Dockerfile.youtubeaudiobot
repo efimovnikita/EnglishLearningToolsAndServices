@@ -1,0 +1,31 @@
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
+WORKDIR /source
+
+COPY *.sln .
+COPY ./Reader/Reader.csproj ./Reader/
+COPY ./YoutubeAudioApi/YoutubeAudioApi.csproj ./YoutubeAudioApi/
+COPY ./ParaphraserBot/ParaphraserBot.csproj ./ParaphraserBot/
+COPY ./YoutubeAudioFrontend/YoutubeAudioFrontend.csproj ./YoutubeAudioFrontend/
+COPY ./YoutubeAudioBot/YoutubeAudioBot.csproj ./YoutubeAudioBot/
+COPY ./TTSApi/TTSApi.csproj ./TTSApi/
+
+RUN dotnet restore
+
+COPY ./Reader/ ./Reader/
+RUN dotnet publish ./Reader/Reader.csproj -c Release -o /app/publish/Reader
+
+COPY ./YoutubeAudioBot/ ./YoutubeAudioBot/
+RUN dotnet publish ./YoutubeAudioBot/YoutubeAudioBot.csproj -c Release -o /app/publish/YoutubeAudioBot
+
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy AS runtime
+WORKDIR /app
+
+RUN mkdir -p /app/YoutubeAudioBot
+RUN mkdir -p /app/Reader
+
+COPY --from=build-env /app/publish/YoutubeAudioBot /app/YoutubeAudioBot
+COPY --from=build-env /app/publish/Reader /app/Reader
+
+ENTRYPOINT ["dotnet", "/app/YoutubeAudioBot/YoutubeAudioBot.dll"]
+
+

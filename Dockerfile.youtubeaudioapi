@@ -1,0 +1,44 @@
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
+
+WORKDIR /source
+
+COPY *.sln .
+COPY ./Reader/Reader.csproj ./Reader/
+COPY ./YoutubeAudioApi/YoutubeAudioApi.csproj ./YoutubeAudioApi/
+COPY ./ParaphraserBot/ParaphraserBot.csproj ./ParaphraserBot/
+COPY ./YoutubeAudioFrontend/YoutubeAudioFrontend.csproj ./YoutubeAudioFrontend/
+COPY ./YoutubeAudioBot/YoutubeAudioBot.csproj ./YoutubeAudioBot/
+COPY ./TTSApi/TTSApi.csproj ./TTSApi/
+
+RUN dotnet restore
+
+COPY ./Reader/ ./Reader/
+RUN dotnet publish ./Reader/Reader.csproj -c Release -o /app/publish/Reader
+
+COPY ./YoutubeAudioApi/ ./YoutubeAudioApi/
+RUN dotnet publish ./YoutubeAudioApi/YoutubeAudioApi.csproj -c Release -o /app/publish/YoutubeAudioApi
+
+RUN dotnet dev-certs https -ep /app/publish/cert-aspnetcore.pfx -p crypticpassword
+RUN dotnet dev-certs https --trust
+
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy AS runtime
+WORKDIR /app
+
+RUN mkdir -p /app/YoutubeAudioApi
+RUN mkdir -p /app/Reader
+
+COPY --from=build-env /app/publish/YoutubeAudioApi /app/YoutubeAudioApi
+COPY --from=build-env /app/publish/Reader /app/Reader
+
+COPY --from=build-env /app/publish/cert-aspnetcore.pfx /app/cert-aspnetcore.pfx
+
+RUN apt-get update \
+    && apt-get install -y ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 80
+EXPOSE 443
+
+ENTRYPOINT ["dotnet", "/app/YoutubeAudioApi/YoutubeAudioApi.dll"]
+
+
