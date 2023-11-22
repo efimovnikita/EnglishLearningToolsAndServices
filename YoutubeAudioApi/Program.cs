@@ -40,6 +40,13 @@ app.MapGet("/api/getAudioFromYoutube", async (string url) =>
     return Results.File(stream, "audio/mpeg", fileName);
 });
 
+app.MapGet("/api/getTextFromYoutube", async (string url, string token) => 
+{
+    TextContentExtractor textContentExtractor = new(token);
+    string textContentFromUrl = await textContentExtractor.ExtractTextContentFromUrlAsync(url);
+    return Results.Text(String.IsNullOrEmpty(textContentFromUrl) == false ? textContentFromUrl : "");
+});
+
 app.UseCors(policyBuilder =>
     policyBuilder.AllowAnyOrigin()
         .AllowAnyMethod()
