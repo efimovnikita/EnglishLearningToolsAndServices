@@ -101,6 +101,7 @@ internal class Program
             };
             
             using HttpClient httpClient = new(httpClientHandler);
+            httpClient.Timeout = TimeSpan.FromMinutes(5);
             HttpResponseMessage response = await httpClient.GetAsync($"{_endpointUrl}/api/getAudioFromYoutube?url={url}", token);
 
             if (response.IsSuccessStatusCode)
