@@ -26,6 +26,10 @@ RUN mkdir -p /app/Reader
 COPY --from=build-env /app/publish/YoutubeAudioBot /app/YoutubeAudioBot
 COPY --from=build-env /app/publish/Reader /app/Reader
 
+RUN apt-get update \
+    && apt-get install -y ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 ENTRYPOINT ["dotnet", "/app/YoutubeAudioBot/YoutubeAudioBot.dll"]
 
 
