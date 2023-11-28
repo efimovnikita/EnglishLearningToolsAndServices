@@ -1,10 +1,10 @@
-using Reader.Tools;
+using Reader.Shared;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services for Swagger
-builder.Services.AddEndpointsApiExplorer(); // enables the API explorer that Swagger uses.
-builder.Services.AddSwaggerGen(); // adds Swagger generator services.
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 builder.Services.AddCors();
 
 // Configure the server to listen to any host on ports 5000 and 5001

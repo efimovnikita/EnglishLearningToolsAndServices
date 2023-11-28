@@ -1,5 +1,5 @@
 ﻿using FFMpegCore;
-using Reader.Tools;
+using Reader.Shared;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using File = System.IO.File;
@@ -109,7 +109,7 @@ internal class Program
             using HttpClient httpClient = new(httpClientHandler);
             httpClient.Timeout = TimeSpan.FromMinutes(5);
 
-            Console.WriteLine($"Making request to '{_endpointUrl}'");
+            Console.WriteLine($"Making the request to '{_endpointUrl}'");
             
             HttpResponseMessage response = await httpClient.GetAsync($"{_endpointUrl}/api/getAudioFromYoutube?url={url}", token);
 
