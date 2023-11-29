@@ -30,9 +30,6 @@
     <None Update="opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="yt-dlp_linux">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ItemGroup>

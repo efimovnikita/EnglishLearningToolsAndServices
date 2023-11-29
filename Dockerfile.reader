@@ -1,0 +1,32 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS build-env
+
+WORKDIR /source
+
+COPY *.sln .
+COPY ./Reader.Shared/Reader.Shared.csproj ./Reader.Shared/
+COPY ./Reader/Reader.csproj ./Reader/
+
+COPY ./Reader.Shared/ ./Reader.Shared/
+RUN dotnet publish ./Reader.Shared/Reader.Shared.csproj -c Release -o /app/publish/Reader.Shared
+
+COPY ./Reader/ ./Reader/
+RUN dotnet publish ./Reader/Reader.csproj -c Release -o /app/publish/Reader
+
+RUN dotnet dev-certs https -ep /app/publish/cert-aspnetcore.pfx -p crypticpassword
+RUN dotnet dev-certs https --trust
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS runtime
+WORKDIR /app
+
+COPY --from=build-env /app/publish/Reader /app
+
+COPY --from=build-env /app/publish/cert-aspnetcore.pfx /app/cert-aspnetcore.pfx
+
+RUN apt-get update \
+    && apt-get install -y ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 80
+EXPOSE 443
+
+ENTRYPOINT ["dotnet", "/app/Reader.dll"]
