@@ -340,7 +340,7 @@
         Uri uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         Dictionary<string, StringValues> query = QueryHelpers.ParseQuery(uri.Query);
 
-        SharedText = query.TryGetValue("text", out StringValues text) ? text : "";
+        SharedText = (query.TryGetValue("text", out StringValues text) ? text : "")!;
         RawTextAreaContent = String.IsNullOrWhiteSpace(SharedText) == false ? SharedText : inputData;
         OpenAiKey = openAiKey;
     }
