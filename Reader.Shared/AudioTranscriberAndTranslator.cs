@@ -21,11 +21,6 @@ public class AudioTranscriberAndTranslator
     {
         return await GetText(fileName, "https://api.openai.com/v1/audio/transcriptions");
     }
-    
-    public async Task<string> TranslateAudio(string fileName)
-    {
-        return await GetText(fileName, "https://api.openai.com/v1/audio/translations");
-    }
 
     private async Task<string> GetText(string fileName, string endpointUrl)
     {
