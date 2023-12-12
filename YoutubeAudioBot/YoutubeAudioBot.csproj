@@ -10,8 +10,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="CliWrap" Version="3.6.4" />
         <PackageReference Include="Telegram.Bot" Version="19.0.0" />
-        <PackageReference Include="FFMpegCore" Version="5.1.0" />
     </ItemGroup>
 
     <ItemGroup>

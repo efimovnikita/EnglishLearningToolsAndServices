@@ -1,4 +1,5 @@
-﻿using FFMpegCore;
+﻿using CliWrap;
+using CliWrap.Buffered;
 using Reader.Shared;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -152,8 +153,10 @@ internal class Program
 
             Console.WriteLine("Files size more than 45 MB. Chunking...");
 
-            List<string> chunkPaths =
-                await SplitMp3IntoChunks(tempFilePath, Path.GetTempPath(), 3600);
+            string[] chunkPaths =
+                await SplitMp3IntoChunks(inputFilePath: tempFilePath,
+                    outputDirectory: Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()),
+                    chunkDurationInMinutes: 45);
 
             await SendChunks(client, token, chunkPaths, chatId, messageId);
 
@@ -172,7 +175,7 @@ internal class Program
         }
     }
 
-    private static async Task SendChunks(ITelegramBotClient client, CancellationToken token, List<string> chunkPaths, long chatId,
+    private static async Task SendChunks(ITelegramBotClient client, CancellationToken token, string[] chunkPaths, long chatId,
         int messageId)
     {
         Console.WriteLine("Sending chunks...");
@@ -207,46 +210,31 @@ internal class Program
         return _allowedUsersList != null && _allowedUsersList.Contains((int) chatId) == false;
     }
 
-    private static async Task<List<string>> SplitMp3IntoChunks(string inputFilePath, string outputDirectory, int chunkDurationInSeconds)
+    private static async Task<string[]> SplitMp3IntoChunks(string inputFilePath, string outputDirectory, int chunkDurationInMinutes)
     {
-        List<string> chunkPaths = new();
+        List<string> chunkPaths = [];
 
         if (!File.Exists(inputFilePath))
         {
             Console.WriteLine("The input file does not exist.");
-            return chunkPaths;
+            return chunkPaths.ToArray();
         }
-
-        IMediaAnalysis mediaInfo = await FFProbe.AnalyseAsync(inputFilePath);
-        TimeSpan totalDuration = mediaInfo.Duration;
-        TimeSpan chunkDuration = TimeSpan.FromSeconds(chunkDurationInSeconds);
         
-        const int bitrate = 32;
-        Console.WriteLine($"Current bitrate is: {bitrate}");
-
-        int counter = 1;
-
-        for (TimeSpan start = TimeSpan.Zero; start < totalDuration; start += chunkDuration)
+        if (Directory.Exists(outputDirectory) == false)
         {
-            string outputFilePath = Path.Combine(outputDirectory, $"{Guid.NewGuid()}{counter:D3}.mp3");
-            TimeSpan st = start;
-            FFMpegArgumentProcessor options = FFMpegArguments
-                .FromFileInput(new FileInfo(inputFilePath), opt => opt.Seek(st))
-                .OutputToFile(outputFilePath, false, opt =>
-                {
-                    opt
-                        .WithAudioCodec("libmp3lame")
-                        .WithAudioBitrate(bitrate)
-                        .WithDuration(chunkDuration);
-                });
-            
-            Console.WriteLine($"Process file: {outputFilePath}");
-            
-            await options.ProcessAsynchronously();
-            chunkPaths.Add(outputFilePath);
-            counter++;
+            Directory.CreateDirectory(outputDirectory);
         }
 
-        return chunkPaths;
+        string arguments =
+            $"-c \"mp3splt -d '{outputDirectory}' -t {chunkDurationInMinutes}.0 '{inputFilePath}'\"";
+
+        Command cmd = Cli.Wrap("/bin/sh")
+            .WithArguments(arguments);
+
+        await cmd.ExecuteBufferedAsync();
+
+        chunkPaths.AddRange(Directory.GetFiles(outputDirectory));
+
+        return chunkPaths.Order().ToArray();
     }
 }
