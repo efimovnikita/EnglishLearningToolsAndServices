@@ -24,10 +24,14 @@ internal class Program
         CoconaApp app = builder.Build();
 
         app.AddCommand("url",
-            async (ILearnService service, [Argument] string url) => await service.GetAudioSplitAndAskUser(url));
+            async (ILearnService service, [Argument(Description = "The YouTube link.")] string url) =>
+            await service.GetAudioSplitAndAskUser(url))
+            .WithDescription("Start a train session, that based on the audio from the YouTube video.");
         app.AddCommand("continue",
-            async (IContinueService service) => await service.ContinueLearning());
-        app.AddCommand("clear", () => { });
+            async (IContinueService service) => await service.ContinueLearning())
+            .WithDescription("Start the previous session.");
+        app.AddCommand("clear", () => { })
+            .WithDescription("Clear the temp folder from previously downloaded files.");
 
         app.Run();
     }
