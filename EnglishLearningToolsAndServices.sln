@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TTSApi", "TTSApi\TTSApi.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reader.Shared", "Reader.Shared\Reader.Shared.csproj", "{36D175EA-5BFE-4664-B344-A9B307587DDF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HearAndTypeConsole", "HearAndTypeConsole\HearAndTypeConsole.csproj", "{A762EA4B-54DD-43B7-BE6D-7C17E4196A4B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +50,9 @@ Global
 		{36D175EA-5BFE-4664-B344-A9B307587DDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36D175EA-5BFE-4664-B344-A9B307587DDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36D175EA-5BFE-4664-B344-A9B307587DDF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A762EA4B-54DD-43B7-BE6D-7C17E4196A4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A762EA4B-54DD-43B7-BE6D-7C17E4196A4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A762EA4B-54DD-43B7-BE6D-7C17E4196A4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A762EA4B-54DD-43B7-BE6D-7C17E4196A4B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
