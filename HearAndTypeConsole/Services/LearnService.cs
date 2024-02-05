@@ -155,6 +155,9 @@ internal class LearnService(
     {
         try
         {
+            if (GetFileSizeInMegabytes(filePath) > 40)
+                throw new Exception("The video is too long. Try another video.");
+            
             return await api.Transcriptions.GetWithDetailsAsync(filePath);
         }
         catch (Exception ex)
@@ -162,5 +165,12 @@ internal class LearnService(
             AnsiConsole.WriteException(ex);
             return null;
         }
+    }
+
+    private static double GetFileSizeInMegabytes(string? filePath)
+    {
+        FileInfo fileInfo = new(filePath!);
+        long fileSizeInBytes = fileInfo.Length;
+        return fileSizeInBytes / 1024d / 1024d;
     }
 }
