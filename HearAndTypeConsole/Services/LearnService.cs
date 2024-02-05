@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using OpenAI_API;
 using OpenAI_API.Audio;
 using Reader.Shared;
@@ -9,21 +10,28 @@ namespace HearAndTypeConsole.Services;
 internal class LearnService(
     IAudioDownloaderService audioDownloader,
     ISplitterService splitterService,
-    IAskerService askerService)
+    IAskerService askerService,
+    IConfiguration configuration)
     : ILearnService
 {
     public async Task<int> GetAudioSplitAndAskUser(string url)
     {
         Console.Clear();
             
-        string? key = Environment.GetEnvironmentVariable("API_KEY");
+        string? key = String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("API_KEY")) == false
+            ? Environment.GetEnvironmentVariable("API_KEY")
+            : configuration.GetValue<string>("API_KEY");
+        
         if (String.IsNullOrWhiteSpace(key))
         {
             AnsiConsole.MarkupLine("[red]The 'API_KEY' environment variable doesn't exist.[/]\n");
             return 1;
         }
 
-        string? endpointUrl = Environment.GetEnvironmentVariable("ENDPOINT");
+        string? endpointUrl = String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ENDPOINT")) == false
+            ? Environment.GetEnvironmentVariable("ENDPOINT")
+            : configuration.GetValue<string>("ENDPOINT");
+        
         if (String.IsNullOrWhiteSpace(endpointUrl))
         {
             AnsiConsole.MarkupLine("[red]The 'ENDPOINT' environment variable doesn't exist.[/]\n");

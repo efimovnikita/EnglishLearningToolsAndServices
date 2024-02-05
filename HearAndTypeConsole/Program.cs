@@ -1,6 +1,7 @@
 ﻿using Cocona;
 using Cocona.Builder;
 using HearAndTypeConsole.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HearAndTypeConsole;
@@ -17,6 +18,8 @@ internal class Program
         builder.Services.AddTransient<IAudioDownloaderService, AudioDownloaderService>();
         builder.Services.AddTransient<ISplitterService, SplitterService>();
         builder.Services.AddTransient<ILearnService, LearnService>();
+
+        builder.Configuration.AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.json"));
 
         CoconaApp app = builder.Build();
 

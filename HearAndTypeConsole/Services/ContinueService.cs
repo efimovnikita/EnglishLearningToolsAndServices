@@ -1,18 +1,22 @@
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using OpenAI_API;
 using Spectre.Console;
 
 namespace HearAndTypeConsole.Services;
 
-internal class ContinueService(IAskerService askerService) : IContinueService
+internal class ContinueService(IAskerService askerService, IConfiguration configuration) : IContinueService
 {
     public const string CurrentDataJsonName = "current_data.json";
 
     public async Task<int> ContinueLearning()
     {
         Console.Clear();
-            
-        string? key = Environment.GetEnvironmentVariable("API_KEY");
+        
+        string? key = String.IsNullOrEmpty(Environment.GetEnvironmentVariable("API_KEY")) == false
+            ? Environment.GetEnvironmentVariable("API_KEY")
+            : configuration.GetValue<string>("API_KEY");
+        
         if (String.IsNullOrWhiteSpace(key))
         {
             AnsiConsole.MarkupLine("[red]The 'API_KEY' environment variable doesn't exist.[/]\n");
