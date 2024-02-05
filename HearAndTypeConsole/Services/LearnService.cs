@@ -1,4 +1,5 @@
 using System.Text.Json;
+using CliWrap;
 using Microsoft.Extensions.Configuration;
 using OpenAI_API;
 using OpenAI_API.Audio;
@@ -31,7 +32,21 @@ internal class LearnService(
         string? endpointUrl = String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ENDPOINT")) == false
             ? Environment.GetEnvironmentVariable("ENDPOINT")
             : configuration.GetValue<string>("ENDPOINT");
+
+        bool isFfmpegAvailable = await IsCommandAvailable("ffmpeg");
+        if (isFfmpegAvailable == false)
+        {
+            AnsiConsole.MarkupLine("[red]The 'ffmpeg' app must be installed.[/]\n");
+            return 1;  
+        }
         
+        bool isMp3SpltAvailable = await IsCommandAvailable("mp3splt");
+        if (isMp3SpltAvailable == false)
+        {
+            AnsiConsole.MarkupLine("[red]The 'mp3splt' app must be installed.[/]\n");
+            return 1;
+        }
+
         if (String.IsNullOrWhiteSpace(endpointUrl))
         {
             AnsiConsole.MarkupLine("[red]The 'ENDPOINT' environment variable doesn't exist.[/]\n");
@@ -97,6 +112,21 @@ internal class LearnService(
         await askerService.AskQuestions(dictionary, api);
 
         return 0;
+    }
+
+    private static async Task<bool> IsCommandAvailable(string name)
+    {
+        try
+        {
+            CommandResult commandResult = await Cli.Wrap(name)
+                .WithArguments($"-version")
+                .ExecuteAsync();
+            return commandResult.ExitCode == 0;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     private void SerializeToFile(Dictionary<FileInfo, string> dictionary, string filename)
