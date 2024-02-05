@@ -34,9 +34,37 @@ internal class ContinueService(IAskerService askerService, IConfiguration config
             return 1;
         }
 
+        bool validationResult = AnsiConsole.Status()
+            .Start("Validating the saved data...",
+                _ => ValidateDictionary(dictionary));
+        
+        if (validationResult == false)
+        {
+            AnsiConsole.MarkupLine("[red]The saved data is invalid.[/]");
+            return 1;
+        }
+
         await askerService.AskQuestions(dictionary, api);
 
         return 0;
+    }
+
+    private static bool ValidateDictionary(Dictionary<FileInfo, string> dictionary)
+    {
+        foreach ((FileInfo fileInfo, string value) in dictionary)
+        {
+            if (fileInfo.Exists == false)
+            {
+                return false;
+            }
+
+            if (String.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private Dictionary<FileInfo, string> DeserializeFromFile(string filename)
