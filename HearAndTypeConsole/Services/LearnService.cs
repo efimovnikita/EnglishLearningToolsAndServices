@@ -19,9 +19,9 @@ internal class LearnService(
     {
         Console.Clear();
             
-        string? key = String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("API_KEY")) == false
-            ? Environment.GetEnvironmentVariable("API_KEY")
-            : configuration.GetValue<string>("API_KEY");
+        string? key = String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(Constants.ApiKeyVarName)) == false
+            ? Environment.GetEnvironmentVariable(Constants.ApiKeyVarName)
+            : configuration.GetValue<string>(Constants.ApiKeyVarName);
         
         if (String.IsNullOrWhiteSpace(key))
         {
@@ -29,9 +29,9 @@ internal class LearnService(
             return 1;
         }
 
-        string? endpointUrl = String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ENDPOINT")) == false
-            ? Environment.GetEnvironmentVariable("ENDPOINT")
-            : configuration.GetValue<string>("ENDPOINT");
+        string? endpointUrl = String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(Constants.EndpointVarName)) == false
+            ? Environment.GetEnvironmentVariable(Constants.EndpointVarName)
+            : configuration.GetValue<string>(Constants.EndpointVarName);
 
         bool isFfmpegAvailable = await IsCommandAvailable("ffmpeg");
         if (isFfmpegAvailable == false)
@@ -106,7 +106,7 @@ internal class LearnService(
 
         AnsiConsole.Status().Start("Saving the result...", _ =>
         {
-            SerializeToFile(dictionary, ContinueService.CurrentDataJsonName);
+            SerializeToFile(dictionary, Constants.CurrentDataFileName);
         });
 
         await askerService.AskQuestions(dictionary, api);

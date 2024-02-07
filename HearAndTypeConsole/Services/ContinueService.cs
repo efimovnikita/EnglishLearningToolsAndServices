@@ -7,15 +7,13 @@ namespace HearAndTypeConsole.Services;
 
 internal class ContinueService(IAskerService askerService, IConfiguration configuration) : IContinueService
 {
-    public const string CurrentDataJsonName = "current_data.json";
-
     public async Task<int> ContinueLearning()
     {
         Console.Clear();
         
-        string? key = String.IsNullOrEmpty(Environment.GetEnvironmentVariable("API_KEY")) == false
-            ? Environment.GetEnvironmentVariable("API_KEY")
-            : configuration.GetValue<string>("API_KEY");
+        string? key = String.IsNullOrEmpty(Environment.GetEnvironmentVariable(Constants.ApiKeyVarName)) == false
+            ? Environment.GetEnvironmentVariable(Constants.ApiKeyVarName)
+            : configuration.GetValue<string>(Constants.ApiKeyVarName);
         
         if (String.IsNullOrWhiteSpace(key))
         {
@@ -24,9 +22,19 @@ internal class ContinueService(IAskerService askerService, IConfiguration config
         }
             
         OpenAIAPI api = new(key);
+        
+        string dataFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+            Constants.CurrentDataFileName);
+
+        if (File.Exists(dataFilePath) == false)
+        {
+            AnsiConsole.MarkupLine("[red]The data file didn't found[/]\n");
+            return 1;
+        }
 
         Dictionary<FileInfo, string> dictionary = AnsiConsole.Status()
-            .Start("Getting the saved data...", _ => DeserializeFromFile(CurrentDataJsonName));
+            .Start("Getting the saved data...",
+                _ => DeserializeFromFile(dataFilePath));
         
         if (dictionary.Count == 0)
         {
@@ -67,13 +75,12 @@ internal class ContinueService(IAskerService askerService, IConfiguration config
         return true;
     }
 
-    private Dictionary<FileInfo, string> DeserializeFromFile(string filename)
+    private Dictionary<FileInfo, string> DeserializeFromFile(string filePath)
     {
         Dictionary<FileInfo, string> dictionary = new();
 
         try
         {
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filename);
             string jsonString = File.ReadAllText(filePath);
             Dictionary<string, string>? simplifiedDictionary =
                 JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString);

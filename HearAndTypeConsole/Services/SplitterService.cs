@@ -7,7 +7,7 @@ internal class SplitterService : ISplitterService
 {
     public async Task<Dictionary<FileInfo, string>> SplitAudio(List<AudioResultVerbose.Segment> segments, string audioFilePath)
     {
-        DirectoryInfo tempSubdirectory = Directory.CreateTempSubdirectory("hear_and_type_");
+        DirectoryInfo tempSubdirectory = Directory.CreateTempSubdirectory(Constants.DirectoryNamePrefix);
 
         for (int index = 0; index < segments.Count; index++)
         {
