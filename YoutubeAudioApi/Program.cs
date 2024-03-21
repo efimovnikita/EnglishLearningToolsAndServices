@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.Features;
 using Reader.Shared;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -6,6 +7,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors();
+builder.Services.Configure<FormOptions>(options => {
+    options.MultipartBodyLengthLimit = 209715200; // Set the file size limit to 200 MB
+});
 
 // Configure the server to listen to any host on ports 5000 and 5001
 builder.WebHost.UseUrls("http://*:5000", "https://*:5001");
@@ -46,6 +50,49 @@ app.MapGet("/api/getTextFromYoutube", async (string url, string token) =>
     string textContentFromUrl = await textContentExtractor.ExtractTextContentFromUrlAsync(url);
     return Results.Text(String.IsNullOrEmpty(textContentFromUrl) == false ? textContentFromUrl : "");
 });
+
+app.MapPost("/api/getTextFromAudio", async (HttpContext httpContext) =>
+{
+    IFormFile? audioFile = httpContext.Request.Form.Files["audioFile"];
+    string? token = httpContext.Request.Form["token"];
+    
+    if (audioFile == null)
+    {
+        return Results.Problem("The audio file wasn't found");
+    }
+    
+    if (String.IsNullOrEmpty(token))
+    {
+        return Results.Problem("The token wasn't found");
+    }
+    
+    using var stream = new MemoryStream();
+    await audioFile.CopyToAsync(stream);
+    byte[] fileBytes = stream.ToArray();
+
+    string tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".mp3");
+
+    try
+    {
+        await File.WriteAllBytesAsync(tempFilePath, fileBytes);
+        
+        AudioTranscriberAndTranslator transcriberAndTranslator = new(token);
+        string result = await transcriberAndTranslator.TranscribeAudio(tempFilePath);
+        
+        return Results.Text(result);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(detail: ex.Message, statusCode: StatusCodes.Status500InternalServerError);
+    }
+    finally
+    {
+        if (File.Exists(tempFilePath))
+        {
+            File.Delete(tempFilePath);
+        }
+    }
+}).DisableAntiforgery();
 
 app.UseCors(policyBuilder =>
     policyBuilder.AllowAnyOrigin()
