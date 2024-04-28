@@ -1,0 +1,10 @@
+{
+	"name": "Reader C# (.NET)",
+	"image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0-jammy",
+	"features": {
+	  "ghcr.io/devcontainers-contrib/features/ffmpeg-apt-get:1": {}
+	},
+	"mounts": [
+	  "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+	],
+}
