@@ -146,6 +146,9 @@ internal class Program
                     replyToMessageId: messageId,
                     cancellationToken: token);
 
+                await client.SendAudioAsync(chatId, InputFile.FromStream(File.OpenRead(tempFilePath)),
+                    replyToMessageId: messageId, cancellationToken: token);
+
                 Console.WriteLine($"Request from '{chatId}' successfully processed");
 
                 return;
@@ -199,6 +202,9 @@ internal class Program
                 InputFile.FromStream(File.OpenRead(chunkPath)),
                 replyToMessageId: messageId,
                 cancellationToken: token);
+            
+            await client.SendAudioAsync(chatId, InputFile.FromStream(File.OpenRead(chunkPath)),
+                replyToMessageId: messageId, cancellationToken: token);
 
             File.Delete(chunkPath);
             Console.WriteLine($"Chunk '{chunkPath}' deleted successfully");
