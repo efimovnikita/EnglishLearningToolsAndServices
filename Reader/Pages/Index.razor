@@ -527,7 +527,7 @@
         CurrentMode = CurrentMode == Mode.Sentence ? Mode.Word : Mode.Sentence;
     }
 
-    private static bool IsWord(Token token) => Regex.IsMatch(token.Text, @"^[A-Za-z-'’]+$");
+    private static bool IsWord(Token token) => Regex.IsMatch(token.Text, @"^[A-Za-zàèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ’'-]+$");
 
     private async Task ProcessText()
     {

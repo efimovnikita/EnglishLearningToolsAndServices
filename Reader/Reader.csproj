@@ -30,6 +30,15 @@
     <None Update="opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="langdetect-183.bin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="opennlp-it-ud-vit-tokens-1.0-1.9.3.bin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="opennlp-it-ud-vit-sentence-1.0-1.9.3.bin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
