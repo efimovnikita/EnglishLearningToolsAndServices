@@ -40,7 +40,7 @@ public class TokenizerAndSentenceExtractor
                 tokenizerModelPath = "opennlp-it-ud-vit-tokens-1.0-1.9.3.bin";
                 break;
             default:
-                throw new NotSupportedException($"Language '{lang}' is not supported");
+                throw new NotSupportedException($"Language '{lang}' is not supported. Please use English or Italian.");
         }
 
         // Load appropriate models
