@@ -6,14 +6,13 @@ namespace Reader.Models;
 
 public class TokenizerAndSentenceExtractor
 {
-    public static List<Sentence> GetSentencesList(string input)
+    public static string DetectLanguage(string input)
     {
         if (string.IsNullOrEmpty(input))
         {
             throw new ArgumentException("Input text cannot be null or empty");
         }
 
-        // Detect language first
         var langDetectModelIn = new java.io.FileInputStream("langdetect-183.bin");
         var languageDetector = new LanguageDetectorModel(langDetectModelIn);
         var languageDetectorMe = new LanguageDetectorME(languageDetector);
@@ -24,6 +23,18 @@ public class TokenizerAndSentenceExtractor
         {
             throw new InvalidOperationException("Could not detect language");
         }
+
+        return lang;
+    }
+
+    public static List<Sentence> GetSentencesList(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            throw new ArgumentException("Input text cannot be null or empty");
+        }
+
+        var lang = DetectLanguage(input);
 
         // Select appropriate model files based on language
         string sentenceModelPath;

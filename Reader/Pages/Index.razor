@@ -159,6 +159,11 @@
                 IconName="question" 
                 IsDisabled="IsGetDefinitionButtonDisabled" 
                 IsLoading="IsLoading" />
+            
+            @if (!string.IsNullOrEmpty(DetectedLanguage))
+            {
+                <span class="text-xl">@GetLanguageFlag()</span>
+            }
         }
     </div>
 </main>
@@ -553,6 +558,9 @@
                 }
             }
             
+            // Detect language before processing
+            DetectedLanguage = TokenizerAndSentenceExtractor.DetectLanguage(RawTextAreaContent);
+            
             // Add to local storage
             await LocalStorage.SetItemAsync(LocalStorageInputName, RawTextAreaContent);
 
@@ -802,4 +810,18 @@
         return record != null ? record.Text : "";
     }
     
+    private string? DetectedLanguage { get; set; }
+    
+    private string GetLanguageFlag()
+    {
+        if (string.IsNullOrEmpty(DetectedLanguage))
+            return "";
+            
+        return DetectedLanguage.ToLower() switch
+        {
+            "eng" => "🇬🇧",
+            "ita" => "🇮🇹",
+            _ => ""
+        };
+    }
 }
