@@ -17,14 +17,9 @@
 @using iText.Kernel.Pdf.Canvas.Parser
 @using iText.Kernel.Pdf.Canvas.Parser.Listener
 @using System.Reflection
-@using System.Text.Json
 @using TiktokenSharp
-@using System.Net.Http.Headers
 @using LiteDB
-@using Microsoft.Extensions.Options
-@using JsonSerializer = System.Text.Json.JsonSerializer
 @inject NavigationManager NavigationManager
-@inject IOptions<TextToSpeechApiSettings> TextToSpeechApiSettings
 
 <PageTitle>Reader</PageTitle>
 
@@ -149,12 +144,6 @@
             </button>
             
             <ButtonComponent 
-                Action="PlayAudio" 
-                IconName="waves" 
-                IsDisabled="false" 
-                IsLoading="IsPlayAudioLoading" />
-            
-            <ButtonComponent 
                 Action="GetDefinitionOrParaphrase" 
                 IconName="question" 
                 IsDisabled="IsGetDefinitionButtonDisabled" 
@@ -224,101 +213,8 @@
     private bool ShowHistory { get; set; }
     private bool ShowSettings { get; set; }
     private bool IsLoading { get; set; }
-    private bool IsPlayAudioLoading { get; set; }
 
     private Modal Modal { get; set; } = new();
-    
-    private async Task PlayAudio()
-    {
-        try
-        {
-            string? url = TextToSpeechApiSettings.Value.Url;
-            if (url == null)
-            {
-                return;
-            }
-
-            if (CurrentPage == null)
-            {
-                return;
-            }
-            
-            StringBuilder builder = new();
-            PrepareRequestTextContext(builder);
-
-            var requestData = new { Text = builder.ToString() };
-
-            JsonSerializerOptions jsonOptions = new()
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-            string jsonData = JsonSerializer.Serialize(requestData, jsonOptions);
-            
-            HttpClientHandler httpClientHandler = new()
-            {
-                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-
-            using HttpClient client = new(httpClientHandler);
-
-            client.Timeout = TimeSpan.FromMinutes(4);
-
-            HttpContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-            IsPlayAudioLoading = true;
-            HttpResponseMessage response = await client.PostAsync(url, content);
-            IsPlayAudioLoading = false;
-
-            response.EnsureSuccessStatusCode();
-
-            if (response.IsSuccessStatusCode)
-            {
-                // Read the audio content from the response stream
-                byte[] audioData = await response.Content.ReadAsByteArrayAsync();
-
-                // Convert the audio data to a base64-encoded string
-                string base64Audio = Convert.ToBase64String(audioData);
-
-                // Invoke JavaScript function to play the audio
-                await JsRuntime.InvokeVoidAsync("playAudio", base64Audio);
-            }
-        }
-        catch(Exception ex)
-        {
-            Modal.Title = "Error";
-            Modal.TextContent = ex.Message;
-            Modal.ModalType = ModalType.Error;
-            ShowModal = true;
-        }
-        finally
-        {
-            IsPlayAudioLoading = false;
-        }
-    }
-
-    private void PrepareRequestTextContext(StringBuilder builder)
-    {
-        switch (SelectedSentences.Count)
-        {
-            case 0 when SelectedWord == null:
-            {
-                if (CurrentPage != null)
-                {
-                    builder.AppendJoin(' ', CurrentPage.Sentences.Select(sentence => ReplaceApostrophe(sentence.ToString())));
-                }
-                break;
-            }
-            case > 0:
-                builder.AppendJoin(' ', SelectedSentences.Select(sentence => ReplaceApostrophe(sentence.ToString())));
-                break;
-        }
-
-        if (SelectedWord != null)
-        {
-            builder.Append(SelectedWord.Text);
-        }
-    }
 
     public static string ReplaceApostrophe(string input) => input.Replace("'", "’");
 
